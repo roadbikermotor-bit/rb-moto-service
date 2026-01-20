@@ -1,0 +1,2912 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>نظام إدارة طلبات الصيانة - Road Biker</title>
+
+  <!-- Font (same as your A4-commissions file) -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+  <style>
+    :root{
+      --bg:#0f172a;           /* slate-900 */
+      --panel:#111827;        /* gray-900 */
+      --card:#0b1220;
+      --muted:#94a3b8;        /* slate-400 */
+      --text:#e5e7eb;         /* gray-200 */
+      --line:#1f2937;         /* gray-800 */
+      --accent:#fbbf24;       /* amber-400 */
+      --danger:#ef4444;
+      --ok:#22c55e;
+      --warn:#f97316;
+      --shadow: 0 10px 30px rgba(0,0,0,.35);
+      --radius:16px;
+      --radius-sm:12px;
+      --font: "Cairo","Tahoma",system-ui,-apple-system,"Segoe UI",Roboto,Arial,sans-serif;
+    }
+
+    *{box-sizing:border-box}
+    body{
+      margin:0;
+      font-family:var(--font);
+      background: radial-gradient(1200px 800px at 15% 10%, rgba(251,191,36,.12), transparent 55%),
+                  radial-gradient(900px 700px at 90% 20%, rgba(34,197,94,.10), transparent 55%),
+                  var(--bg);
+      color:var(--text);
+      height:100vh;
+      overflow:hidden;
+    }
+
+    a{color:inherit}
+
+    .app{
+      display:grid;
+      grid-template-columns: 290px 1fr;
+      height:100vh;
+    }
+
+    .sidebar{
+      background: linear-gradient(180deg, rgba(17,24,39,.92), rgba(17,24,39,.78));
+      border-left:1px solid rgba(255,255,255,.06);
+      padding:18px;
+      display:flex;
+      flex-direction:column;
+      gap:14px;
+      overflow:auto;
+    }
+
+    .brand{
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:10px;
+      padding:14px 14px;
+      border:1px solid rgba(255,255,255,.08);
+      background: rgba(11,18,32,.55);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+    }
+
+    .brand .title{
+      font-size:14px;
+      line-height:1.25;
+      font-weight:700;
+      letter-spacing:.2px;
+    }
+    .brand .sub{
+      font-size:12px;
+      color:var(--muted);
+      margin-top:2px;
+      font-weight:600;
+    }
+
+    .pill{
+      font-size:11px;
+      padding:6px 10px;
+      border-radius:999px;
+      border:1px solid rgba(255,255,255,.1);
+      background: rgba(251,191,36,.14);
+      color: #fde68a;
+      white-space:nowrap;
+      font-weight:700;
+    }
+
+    .nav{
+      display:flex;
+      flex-direction:column;
+      gap:8px;
+    }
+
+    .nav button{
+      all:unset;
+      cursor:pointer;
+      padding:12px 12px;
+      border-radius: var(--radius-sm);
+      border:1px solid rgba(255,255,255,.08);
+      background: rgba(11,18,32,.35);
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:10px;
+      transition: transform .08s ease, background .15s ease, border-color .15s ease;
+    }
+    .nav button:hover{transform: translateY(-1px); border-color: rgba(251,191,36,.35); background: rgba(11,18,32,.55)}
+    .nav button.active{border-color: rgba(251,191,36,.55); background: rgba(251,191,36,.10)}
+
+    .nav .label{font-weight:800; font-size:13px}
+    .nav .hint{font-size:11px; color:var(--muted); font-weight:700}
+
+    .sidebar .actions{
+      margin-top:auto;
+      display:flex;
+      flex-direction:column;
+      gap:10px;
+    }
+
+    .btn{
+      cursor:pointer;
+      border:1px solid rgba(255,255,255,.10);
+      border-radius: 14px;
+      padding:11px 12px;
+      background: rgba(11,18,32,.55);
+      color: var(--text);
+      font-weight:800;
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:10px;
+      transition: transform .08s ease, border-color .15s ease, background .15s ease;
+    }
+    .btn:hover{transform: translateY(-1px); border-color: rgba(255,255,255,.18)}
+
+    .btn.primary{border-color: rgba(251,191,36,.45); background: rgba(251,191,36,.12)}
+    .btn.primary:hover{border-color: rgba(251,191,36,.65)}
+
+    .btn.danger{border-color: rgba(239,68,68,.55); background: rgba(239,68,68,.10)}
+
+    .main{
+      padding:18px;
+      overflow:auto;
+    }
+
+    .topbar{
+      display:flex;
+      flex-wrap:wrap;
+      gap:10px;
+      align-items:center;
+      justify-content:space-between;
+      margin-bottom:14px;
+    }
+
+    .topbar .left{
+      display:flex;
+      gap:10px;
+      align-items:center;
+      flex-wrap:wrap;
+    }
+
+    .search{
+      display:flex;
+      gap:10px;
+      align-items:center;
+      padding:10px 12px;
+      border-radius: 999px;
+      border:1px solid rgba(255,255,255,.10);
+      background: rgba(11,18,32,.35);
+      min-width: 330px;
+      max-width: 520px;
+      width: 48vw;
+    }
+    .search input{
+      width:100%;
+      border:0;
+      outline:0;
+      background: transparent;
+      color: var(--text);
+      font-weight:700;
+      font-size:13px;
+    }
+    .search small{color:var(--muted); font-weight:800}
+
+    .kpis{
+      display:grid;
+      grid-template-columns: repeat(4, minmax(180px, 1fr));
+      gap:12px;
+      margin: 10px 0 16px;
+    }
+
+    .card{
+      background: rgba(11,18,32,.55);
+      border:1px solid rgba(255,255,255,.08);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      padding:14px;
+    }
+
+    .kpi .name{color:var(--muted); font-weight:900; font-size:12px}
+    .kpi .value{font-weight:900; font-size:20px; margin-top:6px}
+    .kpi .sub{color:var(--muted); font-weight:800; font-size:11px; margin-top:6px}
+
+    .grid2{
+      display:grid;
+      grid-template-columns: 1.2fr .8fr;
+      gap:12px;
+    }
+
+    .h1{
+      font-size:18px;
+      font-weight:900;
+      margin:0;
+    }
+    .muted{color:var(--muted); font-weight:700}
+
+    table{
+      width:100%;
+      border-collapse:separate;
+      border-spacing:0;
+      overflow:hidden;
+      border-radius: 14px;
+      border:1px solid rgba(255,255,255,.08);
+      background: rgba(11,18,32,.35);
+    }
+    th, td{
+      padding:10px 10px;
+      border-bottom:1px solid rgba(255,255,255,.06);
+      font-size:12.5px;
+      vertical-align:top;
+    }
+    th{
+      text-align:right;
+      color:#e2e8f0;
+      font-weight:900;
+      background: rgba(17,24,39,.55);
+    }
+    tr:hover td{background: rgba(251,191,36,.06)}
+    tr:last-child td{border-bottom:0}
+
+    .badge{
+      display:inline-flex;
+      align-items:center;
+      gap:6px;
+      padding:4px 9px;
+      border-radius: 999px;
+      font-weight:900;
+      font-size:11px;
+      border:1px solid rgba(255,255,255,.12);
+      background: rgba(255,255,255,.06);
+      white-space:nowrap;
+    }
+    .badge.ok{border-color: rgba(34,197,94,.35); background: rgba(34,197,94,.10)}
+    .badge.warn{border-color: rgba(249,115,22,.45); background: rgba(249,115,22,.10)}
+    .badge.wait{border-color: rgba(251,191,36,.45); background: rgba(251,191,36,.10)}
+    .badge.danger{border-color: rgba(239,68,68,.5); background: rgba(239,68,68,.10)}
+
+    .row-actions{
+      display:flex;
+      gap:8px;
+      flex-wrap:wrap;
+    }
+
+    .mini{
+      cursor:pointer;
+      padding:7px 9px;
+      border-radius: 12px;
+      border:1px solid rgba(255,255,255,.10);
+      background: rgba(11,18,32,.45);
+      color: var(--text);
+      font-weight:900;
+      font-size:11px;
+    }
+    .mini:hover{border-color: rgba(251,191,36,.45)}
+    .mini.danger{border-color: rgba(239,68,68,.5); background: rgba(239,68,68,.08)}
+
+    .form{
+      display:grid;
+      grid-template-columns: repeat(2, minmax(0,1fr));
+      gap:10px;
+      margin-top:10px;
+    }
+    .form .full{grid-column: 1 / -1}
+
+    label{
+      font-size:12px;
+      color: var(--muted);
+      font-weight:900;
+      display:block;
+      margin-bottom:6px;
+    }
+
+    input, select, textarea{
+      width:100%;
+      padding:10px 10px;
+      border-radius: 12px;
+      border:1px solid rgba(255,255,255,.10);
+      background: rgba(11,18,32,.35);
+      color: var(--text);
+      font-weight:800;
+      font-size:13px;
+      outline:none;
+    }
+    textarea{min-height: 96px; resize: vertical}
+
+    .tabs{
+      display:flex;
+      gap:8px;
+      flex-wrap:wrap;
+      margin-top:12px;
+    }
+    .tab{
+      cursor:pointer;
+      border:1px solid rgba(255,255,255,.10);
+      background: rgba(11,18,32,.35);
+      color: var(--text);
+      padding:9px 10px;
+      border-radius: 999px;
+      font-weight:900;
+      font-size:12px;
+    }
+    .tab.active{border-color: rgba(251,191,36,.55); background: rgba(251,191,36,.10)}
+
+    .split{
+      display:grid;
+      grid-template-columns: 1fr 1fr;
+      gap:10px;
+    }
+
+    .hr{height:1px; background: rgba(255,255,255,.08); margin:12px 0}
+
+    .modal{
+      position:fixed;
+      inset:0;
+      display:none;
+      align-items:center;
+      justify-content:center;
+      padding:18px;
+      background: rgba(2,6,23,.55);
+      backdrop-filter: blur(8px);
+      z-index:1000;
+    }
+    .modal.open{display:flex}
+    .modal .box{
+      width:min(920px, 96vw);
+      background: rgba(17,24,39,.92);
+      border:1px solid rgba(255,255,255,.10);
+      border-radius: var(--radius);
+      box-shadow: 0 25px 70px rgba(0,0,0,.55);
+      padding:14px;
+      max-height: 90vh;
+      overflow:auto;
+    }
+
+    .modal .head{
+      display:flex;
+      gap:10px;
+      align-items:flex-start;
+      justify-content:space-between;
+    }
+    .modal .head h2{
+      margin:0;
+      font-size:16px;
+      font-weight:900;
+    }
+    .modal .head p{
+      margin:4px 0 0;
+      color:var(--muted);
+      font-weight:700;
+      font-size:12px;
+    }
+
+    .right-actions{display:flex; gap:8px; flex-wrap:wrap; align-items:center}
+
+    .toast{
+      position:fixed;
+      bottom:18px;
+      left:18px;
+      display:flex;
+      flex-direction:column;
+      gap:8px;
+      z-index:2000;
+    }
+    .toast .t{
+      background: rgba(17,24,39,.92);
+      border:1px solid rgba(255,255,255,.10);
+      border-radius: 14px;
+      padding:10px 12px;
+      box-shadow: var(--shadow);
+      font-weight:900;
+      font-size:12px;
+      max-width: 420px;
+    }
+    .t.ok{border-color: rgba(34,197,94,.45)}
+    .t.danger{border-color: rgba(239,68,68,.55)}
+    .t.warn{border-color: rgba(249,115,22,.55)}
+
+    .print-wrap{display:none}
+
+
+
+    /* =============================
+       THEME OVERRIDES (Light + Yellow Sidebar)
+       Palette: #ffde59 (accent) + Black text
+       ============================= */
+
+    body{background:#fff !important; color:#111827 !important;}
+    :root{
+      --bg:#ffffff;
+      --panel:#ffffff;
+      --card:#ffffff;
+      --text:#111827;
+      --muted:#6b7280;
+      --line:#e5e7eb;
+      --accent:#ffde59;
+      --shadow: 0 10px 24px rgba(17,24,39,.10);
+    }
+
+    .main{background:#fff;}
+
+    /* Sidebar */
+    .sidebar{
+      background: #ffde59 !important;
+      color:#111827 !important;
+      border-left: 1px solid rgba(17,24,39,.12) !important;
+    }
+    .brand{
+      background: rgba(255,255,255,.65) !important;
+      border: 1px solid rgba(17,24,39,.10) !important;
+      box-shadow: 0 10px 24px rgba(17,24,39,.12) !important;
+    }
+    .brand .sub{color:#374151 !important;}
+    .pill{
+      background: rgba(17,24,39,.08) !important;
+      border: 1px solid rgba(17,24,39,.12) !important;
+      color:#111827 !important;
+    }
+
+    .nav button{
+      background: rgba(255,255,255,.55) !important;
+      border: 1px solid rgba(17,24,39,.10) !important;
+      color:#111827 !important;
+      box-shadow: 0 8px 18px rgba(17,24,39,.08);
+    }
+    .nav .hint{color:#4b5563 !important;}
+    .nav button:hover{
+      border-color: rgba(17,24,39,.22) !important;
+      background: rgba(255,255,255,.75) !important;
+    }
+    .nav button.active{
+      border-color: rgba(17,24,39,.28) !important;
+      background: rgba(255,255,255,.90) !important;
+    }
+
+    .sidebar .btn{
+      background: rgba(255,255,255,.65) !important;
+      border: 1px solid rgba(17,24,39,.12) !important;
+      color:#111827 !important;
+      box-shadow: 0 8px 18px rgba(17,24,39,.08);
+    }
+    .sidebar .btn.primary{
+      background: rgba(255,255,255,.85) !important;
+      border-color: rgba(17,24,39,.18) !important;
+    }
+    .sidebar .btn.danger{
+      background: rgba(239,68,68,.10) !important;
+      border-color: rgba(239,68,68,.45) !important;
+      color:#111827 !important;
+    }
+
+    /* Main controls */
+    .search{
+      background:#fff !important;
+      border:1px solid var(--line) !important;
+      box-shadow: 0 10px 22px rgba(17,24,39,.06);
+    }
+    .search input{color:#111827 !important;}
+    .search small{color:#6b7280 !important;}
+
+    .card{
+      background:#fff !important;
+      border:1px solid var(--line) !important;
+      box-shadow: 0 14px 28px rgba(17,24,39,.08) !important;
+    }
+
+    /* Tables */
+    table{
+      background:#fff !important;
+      border:1px solid var(--line) !important;
+    }
+    th{
+      background:#f3f4f6 !important;
+      color:#111827 !important;
+      border-bottom:1px solid var(--line) !important;
+    }
+    td{border-bottom:1px solid var(--line) !important; color:#111827;}
+    tr:hover td{background: rgba(255,222,89,.22) !important;}
+
+    /* Pills / badges */
+    .badge{
+      border:1px solid rgba(17,24,39,.14) !important;
+      background: rgba(17,24,39,.04) !important;
+      color:#111827 !important;
+    }
+
+    /* Buttons in main */
+    .btn{
+      background:#fff;
+      border:1px solid var(--line);
+      color:#111827;
+      box-shadow: 0 10px 22px rgba(17,24,39,.06);
+    }
+    .btn.primary{background: rgba(255,222,89,.55); border-color: rgba(17,24,39,.14);}
+    .btn.danger{background: rgba(239,68,68,.10); border-color: rgba(239,68,68,.35);}
+
+    .mini{
+      background:#fff !important;
+      border:1px solid var(--line) !important;
+      color:#111827 !important;
+      box-shadow: 0 10px 18px rgba(17,24,39,.06);
+    }
+    .mini:hover{border-color: rgba(17,24,39,.18) !important;}
+
+    /* Forms */
+    label{color:#4b5563 !important;}
+    input, select, textarea{
+      background:#fff !important;
+      border:1px solid var(--line) !important;
+      color:#111827 !important;
+      box-shadow: 0 10px 18px rgba(17,24,39,.05);
+    }
+    input:focus, select:focus, textarea:focus{
+      border-color: rgba(17,24,39,.22) !important;
+      outline: none;
+      box-shadow: 0 0 0 4px rgba(255,222,89,.55);
+    }
+
+    .tab{
+      background:#fff !important;
+      border:1px solid var(--line) !important;
+      color:#111827 !important;
+    }
+    .tab.active{
+      background: rgba(255,222,89,.55) !important;
+      border-color: rgba(17,24,39,.14) !important;
+    }
+
+    .hr{background: var(--line) !important;}
+
+    /* Modal + Toast */
+    .modal{background: rgba(17,24,39,.35) !important;}
+    .modal .box{
+      background:#fff !important;
+      border:1px solid var(--line) !important;
+      box-shadow: 0 24px 70px rgba(17,24,39,.20) !important;
+      color:#111827 !important;
+    }
+    .modal .head p{color:#6b7280 !important;}
+
+    .toast .t{
+      background:#fff !important;
+      border:1px solid var(--line) !important;
+      color:#111827 !important;
+      box-shadow: 0 16px 30px rgba(17,24,39,.12) !important;
+    }
+
+    @media (max-width: 980px){
+      .app{grid-template-columns: 1fr}
+      .sidebar{display:none}
+      .kpis{grid-template-columns: repeat(2, minmax(0,1fr))}
+      .grid2{grid-template-columns: 1fr}
+      .split{grid-template-columns: 1fr}
+      .search{min-width: 220px; width: 80vw}
+    }
+
+    @media print{
+      body{background:#fff; color:#000; overflow:visible}
+      .app, .sidebar, .main, .modal, .toast{display:none !important}
+      .print-wrap{display:block}
+    }
+  </style>
+</head>
+<body>
+  <div class="app">
+    <aside class="sidebar">
+      <div class="brand">
+        <div>
+          <div class="title">نظام إدارة طلبات الصيانة</div>
+          <div class="sub">بدون سيرفر • يعمل محليًا (LocalStorage)</div>
+        </div>
+        <div class="pill">RB • v1</div>
+      </div>
+
+      <div class="nav" id="nav">
+        <button data-view="dashboard" class="active">
+          <div>
+            <div class="label">لوحة التحكم</div>
+            <div class="hint">نظرة عامة + مؤشرات</div>
+          </div>
+          <div class="hint">↩</div>
+        </button>
+        <button data-view="orders">
+          <div>
+            <div class="label">طلبات الصيانة</div>
+            <div class="hint">إنشاء • متابعة • إقفال</div>
+          </div>
+          <div class="hint">#</div>
+        </button>
+        <button data-view="customers">
+          <div>
+            <div class="label">العملاء</div>
+            <div class="hint">سجل العملاء</div>
+          </div>
+          <div class="hint">👤</div>
+        </button>
+        <button data-view="vehicles">
+          <div>
+            <div class="label">المركبات/الأجهزة</div>
+            <div class="hint">لوحات/شاصي • موديلات</div>
+          </div>
+          <div class="hint">🏍️</div>
+        </button>
+        <button data-view="settings">
+          <div>
+            <div class="label">الإعدادات</div>
+            <div class="hint">فروع • VAT • نسخ احتياطي</div>
+          </div>
+          <div class="hint">⚙</div>
+        </button>
+      </div>
+
+      <div class="actions">
+        <button class="btn primary" id="btnNewOrder">+ فتح طلب صيانة</button>
+        <button class="btn" id="btnExport">⬇ تصدير البيانات (JSON)</button>
+        <button class="btn" id="btnImport">⬆ استيراد البيانات (JSON)</button>
+        <button class="btn danger" id="btnWipe">🗑 تصفير البيانات (تحذير)</button>
+        <input id="importFile" type="file" accept="application/json" style="display:none" />
+      </div>
+    </aside>
+
+    <main class="main">
+      <div class="topbar">
+        <div class="left">
+          <div class="search">
+            <small>بحث</small>
+            <input id="search" placeholder="ابحث: رقم طلب، عميل، لوحة، شاصي، جوال…" />
+          </div>
+          <select id="branchFilter" style="min-width:160px">
+            <option value="">كل الفروع</option>
+          </select>
+          <select id="statusFilter" style="min-width:190px">
+            <option value="">كل الحالات</option>
+          </select>
+        </div>
+        <div class="right-actions">
+          <button class="mini" id="quickNew">+ طلب</button>
+          <button class="mini" id="quickCustomer">+ عميل</button>
+          <button class="mini" id="quickVehicle">+ مركبة</button>
+        </div>
+      </div>
+
+      <div id="view"></div>
+    </main>
+  </div>
+
+  <!-- Modal -->
+  <div class="modal" id="modal">
+    <div class="box">
+      <div class="head">
+        <div>
+          <h2 id="modalTitle">—</h2>
+          <p id="modalSub">—</p>
+        </div>
+        <div class="right-actions">
+          <button class="mini" id="modalClose">إغلاق</button>
+        </div>
+      </div>
+      <div class="hr"></div>
+      <div id="modalBody"></div>
+    </div>
+  </div>
+
+  <!-- Print Area -->
+  <div class="print-wrap" id="printArea"></div>
+
+  <div class="toast" id="toast"></div>
+
+<script>
+(function(){
+  // ------------------------
+  // Utilities
+  // ------------------------
+  const $ = (sel, root=document) => root.querySelector(sel);
+  const $$ = (sel, root=document) => Array.from(root.querySelectorAll(sel));
+  const uid = () => Math.random().toString(16).slice(2) + Date.now().toString(16);
+  const pad = (n, w=5) => String(n).padStart(w,'0');
+  const nowISO = () => new Date().toISOString();
+  const fmtDT = (iso) => {
+    if(!iso) return '';
+    const d = new Date(iso);
+    const y = d.getFullYear();
+    const m = String(d.getMonth()+1).padStart(2,'0');
+    const day = String(d.getDate()).padStart(2,'0');
+    const hh = String(d.getHours()).padStart(2,'0');
+    const mm = String(d.getMinutes()).padStart(2,'0');
+    return `${y}-${m}-${day} ${hh}:${mm}`;
+  };
+  const money = (n) => {
+    const x = Number(n||0);
+    return x.toLocaleString('ar-SA', {minimumFractionDigits:2, maximumFractionDigits:2});
+  };
+  const esc = (s) => String(s??'').replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+
+  function toast(msg, type='ok'){
+    const wrap = $('#toast');
+    const el = document.createElement('div');
+    el.className = `t ${type}`;
+    el.textContent = msg;
+    wrap.appendChild(el);
+    setTimeout(()=>{el.remove();}, 2800);
+  }
+
+  // ------------------------
+  // Storage
+  // ------------------------
+  const KEY = {
+    settings: 'rbms_settings_v1',
+    customers: 'rbms_customers_v1',
+    vehicles: 'rbms_vehicles_v1',
+    orders: 'rbms_orders_v1',
+    counter: 'rbms_order_counter_v1',
+    importedReqIds: 'rbms_imported_request_ids_v1'
+  };
+
+  // ------------------------
+  // Live intake sync (cPanel PHP API)
+  // - Put the /api folder on the same hosting next to this file.
+  // - Set your secret key below (used ONLY for pulling/acking from admin panel).
+  // - Client page is: client.html (public) and does NOT need the admin key.
+  // ------------------------
+  const LIVE = {
+    enabled: true,
+    apiBase: 'api',                 // folder name
+    adminKey: 'CHANGE_ME_32CHARS',  // IMPORTANT: change this after upload
+    pollMs: 5000
+  };
+
+  const DEFAULT_SETTINGS = {
+    companyName: 'Road Biker',
+    vatRate: 0.15,
+    branches: ['الرياض', 'جدة', 'حائل'],
+    serviceWarrantyDays: 30,
+    currency: 'ريال',
+    liveEnabled: true,
+    liveApiBase: 'api',
+    liveAdminKey: ''
+  };
+
+  const STATUSES = [
+    'جديد',
+    'تحت التشخيص',
+    'بانتظار موافقة العميل',
+    'بانتظار قطع',
+    'جاري التنفيذ',
+    'جاهز للتسليم',
+    'مُسلّم/مغلق',
+    'ملغي'
+  ];
+
+  function load(key, fallback){
+    try{
+      const raw = localStorage.getItem(key);
+      if(!raw) return structuredClone(fallback);
+      return JSON.parse(raw);
+    }catch(e){
+      console.warn('Load failed', key, e);
+      return structuredClone(fallback);
+    }
+  }
+  function save(key, value){
+    localStorage.setItem(key, JSON.stringify(value));
+  }
+
+  let settings = load(KEY.settings, DEFAULT_SETTINGS);
+  let customers = load(KEY.customers, []);
+  let vehicles = load(KEY.vehicles, []);
+  let orders = load(KEY.orders, []);
+  let orderCounter = load(KEY.counter, 1);
+  let importedReqIds = load(KEY.importedReqIds, []);
+
+  // Seed minimal demo on very first run
+  if(!localStorage.getItem(KEY.settings)){
+    save(KEY.settings, settings);
+    save(KEY.customers, customers);
+    save(KEY.vehicles, vehicles);
+    save(KEY.orders, orders);
+    save(KEY.counter, orderCounter);
+  }
+
+  function persistAll(){
+    save(KEY.settings, settings);
+    save(KEY.customers, customers);
+    save(KEY.vehicles, vehicles);
+    save(KEY.orders, orders);
+    save(KEY.counter, orderCounter);
+    save(KEY.importedReqIds, importedReqIds);
+  }
+
+  function liveConfig(){
+    return {
+      enabled: settings.liveEnabled ?? LIVE.enabled,
+      apiBase: (settings.liveApiBase || LIVE.apiBase || 'api').replace(/\/+$/,'') ,
+      adminKey: (settings.liveAdminKey || LIVE.adminKey || '').trim(),
+      pollMs: LIVE.pollMs || 5000
+    };
+  }
+
+  function portalUrl(){
+    // URL to client intake page on same folder
+    const u = new URL(window.location.href);
+    // remove file part
+    u.pathname = u.pathname.replace(/\/[^\/]*$/, '/');
+    u.search = '';
+    u.hash = '';
+    return u.toString() + 'client.html';
+  }
+
+  const normalizePhone = (p)=> String(p||'').replace(/[^0-9]/g,'').replace(/^966/,'0');
+  const normalizeKey = (s)=> String(s||'').trim();
+
+  function loadImportedReqIds(){
+    return load(KEY.importedReqIds, []);
+  }
+  function saveImportedReqIds(ids){
+    save(KEY.importedReqIds, ids);
+  }
+
+  function ensureCustomerFromReq(r){
+    const phone = normalizePhone(r.phone);
+    let c = customers.find(x=>normalizePhone(x.phone)===phone && phone);
+    if(!c){
+      c = {
+        id: uid(),
+        code: r.customerCode || '',
+        name: r.name || 'عميل جديد',
+        phone: r.phone || '',
+        city: r.city || '',
+        branch: r.branch || '',
+        notes: 'تم الإنشاء من بوابة العميل'
+      };
+      customers.push(c);
+    }
+    return c;
+  }
+
+  function ensureVehicleFromReq(r){
+    const plate = (r.plate||'').trim();
+    const vin = (r.vin||'').trim();
+    const serial = (r.serial||'').trim();
+    let v = vehicles.find(x=> (plate && x.plate===plate) || (vin && x.vin===vin) || (serial && x.serial===serial));
+    if(!v){
+      v = {
+        id: uid(),
+        plate: plate,
+        vin: vin,
+        serial: serial,
+        model: r.model || '',
+        year: r.year || '',
+        color: r.color || '',
+        odometer: r.odometer || '',
+        notes: 'تم الإنشاء من بوابة العميل'
+      };
+      vehicles.push(v);
+    }
+    return v;
+  }
+
+  function importRequestToOrder(r){
+    const c = ensureCustomerFromReq(r);
+    const v = ensureVehicleFromReq(r);
+
+    const o = {
+      id: uid(),
+      seq: orderCounter++,
+      createdAt: r.createdAt || nowISO(),
+      updatedAt: nowISO(),
+      branch: r.branch || (settings.branches||[])[0] || '',
+      priority: r.priority || 'عادي',
+      customerId: c.id,
+      vehicleId: v.id,
+      problem: (r.problem||'').trim(),
+      technician: '',
+      status: 'جديد',
+      diagnosis: { result:'', cause:'', recommendations:'', attachments:'' },
+      quotation: { services:[], parts:[], vatRate: settings.vatRate, discount:0, notes:'' },
+      approval: { decision:'', notes:'', approvedAt:'', approvedBy:'' },
+      execution: { checklist:[], partsUsed:[], techNotes:'', startedAt:'', finishedAt:'' },
+      payment: { method:'', total:0, paid:0, remaining:0, deliveredAt:'', receivedBy:'', warrantyDays: settings.serviceWarrantyDays, warrantyTerms:'' },
+      archived: false,
+      appointment: {
+        date: r.appointmentDate || '',
+        time: r.appointmentTime || '',
+        notes: r.appointmentNotes || ''
+      },
+      source: 'client_portal'
+    };
+    orders.push(o);
+    persistAll();
+    toast(`تم استلام طلب جديد من العميل: ${orderLabel(o)}`,'ok');
+    return o;
+  }
+
+  async function livePollOnce(){
+    const cfg = liveConfig();
+    if(!cfg.enabled) return;
+    if(!cfg.adminKey || cfg.adminKey === 'CHANGE_ME_32CHARS') return;
+
+    try{
+      const url = `${cfg.apiBase}/pull_requests.php?key=${encodeURIComponent(cfg.adminKey)}`;
+      const res = await fetch(url, {cache:'no-store'});
+      if(!res.ok) return;
+      const data = await res.json();
+      const items = Array.isArray(data.requests) ? data.requests : [];
+      if(!items.length) return;
+
+      const imported = new Set(loadImportedReqIds());
+      const ackIds = [];
+
+      for(const r of items){
+        if(!r || !r.id) continue;
+        if(imported.has(r.id)) { ackIds.push(r.id); continue; }
+        importRequestToOrder(r);
+        imported.add(r.id);
+        ackIds.push(r.id);
+      }
+
+      saveImportedReqIds(Array.from(imported).slice(-5000));
+
+      // Ack
+      await fetch(`${cfg.apiBase}/ack.php?key=${encodeURIComponent(cfg.adminKey)}`, {
+        method:'POST',
+        headers:{'Content-Type':'application/json'},
+        body: JSON.stringify({ids: ackIds})
+      });
+
+      // Keep current view but refresh lists
+      render();
+    }catch(e){
+      // silent
+      console.warn('Live poll failed', e);
+    }
+  }
+
+  function startLivePolling(){
+    const cfg = liveConfig();
+    if(!cfg.enabled) return;
+    // first hit quickly
+    livePollOnce();
+    setInterval(livePollOnce, cfg.pollMs || 5000);
+  }
+
+  // ------------------------
+  // State
+  // ------------------------
+  let view = 'dashboard';
+  let searchText = '';
+  let branchFilter = '';
+  let statusFilter = '';
+
+  // ------------------------
+  // Derived helpers
+  // ------------------------
+  const getCustomer = (id) => customers.find(x=>x.id===id);
+  const getVehicle = (id) => vehicles.find(x=>x.id===id);
+
+  function orderLabel(o){
+    return `WO-${pad(o.seq||0, 6)}`;
+  }
+
+  function statusBadge(status){
+    const map = {
+      'جديد':'wait',
+      'تحت التشخيص':'warn',
+      'بانتظار موافقة العميل':'wait',
+      'بانتظار قطع':'wait',
+      'جاري التنفيذ':'warn',
+      'جاهز للتسليم':'ok',
+      'مُسلّم/مغلق':'ok',
+      'ملغي':'danger'
+    };
+    const cls = map[status] || 'wait';
+    return `<span class="badge ${cls}">${esc(status||'—')}</span>`;
+  }
+
+  // ------------------------
+  // Rendering
+  // ------------------------
+  function render(){
+    // update sidebar active
+    $$('#nav button').forEach(b=>b.classList.toggle('active', b.dataset.view===view));
+
+    // update filters
+    fillFilters();
+
+    const root = $('#view');
+    if(view === 'dashboard') root.innerHTML = renderDashboard();
+    if(view === 'orders') root.innerHTML = renderOrders();
+    if(view === 'customers') root.innerHTML = renderCustomers();
+    if(view === 'vehicles') root.innerHTML = renderVehicles();
+    if(view === 'settings') root.innerHTML = renderSettings();
+
+    bindViewEvents();
+  }
+
+  function fillFilters(){
+    // Branch filter
+    const bf = $('#branchFilter');
+    const current = bf.value;
+    bf.innerHTML = `<option value="">كل الفروع</option>` + (settings.branches||[]).map(b=>`<option ${b===current?'selected':''} value="${esc(b)}">${esc(b)}</option>`).join('');
+
+    // Status filter
+    const sf = $('#statusFilter');
+    const sc = sf.value;
+    sf.innerHTML = `<option value="">كل الحالات</option>` + STATUSES.map(s=>`<option ${s===sc?'selected':''} value="${esc(s)}">${esc(s)}</option>`).join('');
+  }
+
+  function filteredOrders(includeClosed=true){
+    return orders
+      .filter(o=> includeClosed ? true : o.status !== 'مُسلّم/مغلق')
+      .filter(o=> branchFilter ? o.branch===branchFilter : true)
+      .filter(o=> statusFilter ? o.status===statusFilter : true)
+      .filter(o=>{
+        if(!searchText) return true;
+        const c = getCustomer(o.customerId);
+        const v = getVehicle(o.vehicleId);
+        const hay = [
+          orderLabel(o),
+          o.problem,
+          o.status,
+          o.branch,
+          c?.name,
+          c?.phone,
+          v?.plate,
+          v?.vin,
+          v?.model,
+          v?.year
+        ].join(' ').toLowerCase();
+        return hay.includes(searchText.toLowerCase());
+      })
+      .sort((a,b)=> (b.createdAt||'').localeCompare(a.createdAt||''));
+  }
+
+  function renderDashboard(){
+    const all = filteredOrders(true);
+    const open = all.filter(o=> !['مُسلّم/مغلق','ملغي'].includes(o.status));
+    const waitingApproval = all.filter(o=> o.status === 'بانتظار موافقة العميل');
+    const waitingParts = all.filter(o=> o.status === 'بانتظار قطع');
+    const ready = all.filter(o=> o.status === 'جاهز للتسليم');
+
+    const revenue = all.reduce((sum,o)=> sum + (Number(o.payment?.paid||0)), 0);
+    const receivable = all.reduce((sum,o)=> sum + Math.max(0, Number(o.payment?.total||0) - Number(o.payment?.paid||0)), 0);
+
+    const recent = all.slice(0,8);
+
+    return `
+      <div class="kpis">
+        <div class="card kpi"><div class="name">طلبات مفتوحة</div><div class="value">${open.length}</div><div class="sub">غير مُسلّمة/غير ملغية</div></div>
+        <div class="card kpi"><div class="name">بانتظار موافقة العميل</div><div class="value">${waitingApproval.length}</div><div class="sub">معروض سعر يحتاج اعتماد</div></div>
+        <div class="card kpi"><div class="name">بانتظار قطع</div><div class="value">${waitingParts.length}</div><div class="sub">متوقف بسبب قطع الغيار</div></div>
+        <div class="card kpi"><div class="name">جاهز للتسليم</div><div class="value">${ready.length}</div><div class="sub">مطلوب تحصيل/تسليم</div></div>
+      </div>
+
+      <div class="grid2">
+        <div class="card">
+          <div style="display:flex; align-items:flex-start; justify-content:space-between; gap:12px;">
+            <div>
+              <h1 class="h1">أحدث الطلبات</h1>
+              <div class="muted">آخر حركة على النظام</div>
+            </div>
+            <div class="row-actions">
+              <button class="mini" data-go="orders">عرض كل الطلبات</button>
+              <button class="mini" id="dashNew">+ فتح طلب</button>
+            </div>
+          </div>
+          <div class="hr"></div>
+          <table>
+            <thead>
+              <tr>
+                <th>رقم الطلب</th>
+                <th>التاريخ</th>
+                <th>الفرع</th>
+                <th>العميل</th>
+                <th>المركبة</th>
+                <th>الحالة</th>
+                <th>إجراءات</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${recent.length? recent.map(o=>{
+                const c = getCustomer(o.customerId);
+                const v = getVehicle(o.vehicleId);
+                return `
+                  <tr>
+                    <td><b>${esc(orderLabel(o))}</b></td>
+                    <td>${esc(fmtDT(o.createdAt))}</td>
+                    <td>${esc(o.branch||'—')}</td>
+                    <td>${esc(c?.name||'—')}<div class="muted">${esc(c?.phone||'')}</div></td>
+                    <td>${esc(v?.plate||v?.vin||'—')}<div class="muted">${esc(v?.model||'')} ${esc(v?.year||'')}</div></td>
+                    <td>${statusBadge(o.status)}</td>
+                    <td>
+                      <div class="row-actions">
+                        <button class="mini" data-open-order="${esc(o.id)}">فتح</button>
+                      </div>
+                    </td>
+                  </tr>
+                `;
+              }).join('') : `<tr><td colspan="7" class="muted">لا توجد بيانات بعد. اضغط "فتح طلب صيانة" للبدء.</td></tr>`}
+            </tbody>
+          </table>
+        </div>
+
+        <div class="card">
+          <h1 class="h1">ملخص مالي سريع</h1>
+          <div class="muted">يعتمد على المدفوعات المسجلة داخل الطلبات</div>
+          <div class="hr"></div>
+          <div class="form">
+            <div>
+              <label>إجمالي مدفوع</label>
+              <input value="${money(revenue)} ${esc(settings.currency)}" disabled />
+            </div>
+            <div>
+              <label>متبقي للتحصيل</label>
+              <input value="${money(receivable)} ${esc(settings.currency)}" disabled />
+            </div>
+            <div class="full">
+              <label>ملاحظة</label>
+              <textarea disabled>هذا ملخص بسيط. عند ربط النظام بالمحاسبة والمخزون يمكن توسيع التقارير بشكل كامل.</textarea>
+            </div>
+          </div>
+        </div>
+      </div>
+    `;
+  }
+
+  function renderCustomers(){
+    const list = customers
+      .filter(c=>{
+        if(!searchText) return true;
+        const hay = [c.code, c.name, c.phone, c.city, c.branch, c.notes].join(' ').toLowerCase();
+        return hay.includes(searchText.toLowerCase());
+      })
+      .sort((a,b)=> (a.name||'').localeCompare(b.name||''));
+
+    return `
+      <div class="card">
+        <div style="display:flex; align-items:flex-start; justify-content:space-between; gap:12px;">
+          <div>
+            <h1 class="h1">العملاء</h1>
+            <div class="muted">رقم العميل • الاسم • الجوال • المدينة/الفرع • الملاحظات</div>
+          </div>
+          <div class="row-actions">
+            <button class="mini" id="addCustomer">+ إضافة عميل</button>
+          </div>
+        </div>
+        <div class="hr"></div>
+        <table>
+          <thead>
+            <tr>
+              <th>رقم العميل</th>
+              <th>الاسم</th>
+              <th>الجوال</th>
+              <th>المدينة</th>
+              <th>الفرع</th>
+              <th>ملاحظات</th>
+              <th>إجراءات</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${list.length? list.map(c=>`
+              <tr>
+                <td><b>${esc(c.code||'—')}</b></td>
+                <td>${esc(c.name||'—')}</td>
+                <td>${esc(c.phone||'—')}</td>
+                <td>${esc(c.city||'—')}</td>
+                <td>${esc(c.branch||'—')}</td>
+                <td class="muted">${esc((c.notes||'').slice(0,80))}</td>
+                <td>
+                  <div class="row-actions">
+                    <button class="mini" data-edit-customer="${esc(c.id)}">تعديل</button>
+                    <button class="mini danger" data-del-customer="${esc(c.id)}">حذف</button>
+                  </div>
+                </td>
+              </tr>
+            `).join('') : `<tr><td colspan="7" class="muted">لا يوجد عملاء بعد.</td></tr>`}
+          </tbody>
+        </table>
+      </div>
+    `;
+  }
+
+  function renderVehicles(){
+    const list = vehicles
+      .filter(v=>{
+        if(!searchText) return true;
+        const hay = [v.plate, v.vin, v.serial, v.model, v.year, v.color, v.meter, v.notes].join(' ').toLowerCase();
+        return hay.includes(searchText.toLowerCase());
+      })
+      .sort((a,b)=> (a.model||'').localeCompare(b.model||''));
+
+    return `
+      <div class="card">
+        <div style="display:flex; align-items:flex-start; justify-content:space-between; gap:12px;">
+          <div>
+            <h1 class="h1">المركبات/الأجهزة</h1>
+            <div class="muted">لوحة/شاصي/سيريال • موديل • سنة • لون • عداد/ساعات</div>
+          </div>
+          <div class="row-actions">
+            <button class="mini" id="addVehicle">+ إضافة مركبة</button>
+          </div>
+        </div>
+        <div class="hr"></div>
+        <table>
+          <thead>
+            <tr>
+              <th>لوحة</th>
+              <th>شاصي/VIN</th>
+              <th>سيريال</th>
+              <th>الموديل</th>
+              <th>السنة</th>
+              <th>اللون</th>
+              <th>عداد/ساعات</th>
+              <th>ملاحظات</th>
+              <th>إجراءات</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${list.length? list.map(v=>`
+              <tr>
+                <td><b>${esc(v.plate||'—')}</b></td>
+                <td>${esc(v.vin||'—')}</td>
+                <td>${esc(v.serial||'—')}</td>
+                <td>${esc(v.model||'—')}</td>
+                <td>${esc(v.year||'—')}</td>
+                <td>${esc(v.color||'—')}</td>
+                <td>${esc(v.meter||'—')}</td>
+                <td class="muted">${esc((v.notes||'').slice(0,70))}</td>
+                <td>
+                  <div class="row-actions">
+                    <button class="mini" data-edit-vehicle="${esc(v.id)}">تعديل</button>
+                    <button class="mini danger" data-del-vehicle="${esc(v.id)}">حذف</button>
+                  </div>
+                </td>
+              </tr>
+            `).join('') : `<tr><td colspan="9" class="muted">لا يوجد مركبات بعد.</td></tr>`}
+          </tbody>
+        </table>
+      </div>
+    `;
+  }
+
+  function renderOrders(){
+    const list = filteredOrders(true);
+
+    return `
+      <div class="card">
+        <div style="display:flex; align-items:flex-start; justify-content:space-between; gap:12px;">
+          <div>
+            <h1 class="h1">طلبات الصيانة</h1>
+            <div class="muted">دورة الطلب: استقبال → تشخيص → عرض سعر → اعتماد → تنفيذ → تسليم → تحصيل/إقفال</div>
+          </div>
+          <div class="row-actions">
+            <button class="mini" id="addOrder">+ فتح طلب</button>
+          </div>
+        </div>
+
+        <div class="hr"></div>
+
+        <table>
+          <thead>
+            <tr>
+              <th>رقم الطلب</th>
+              <th>التاريخ</th>
+              <th>الفرع</th>
+              <th>الأولوية</th>
+              <th>العميل</th>
+              <th>المركبة</th>
+              <th>الحالة</th>
+              <th>إجمالي/مدفوع</th>
+              <th>إجراءات</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${list.length? list.map(o=>{
+              const c = getCustomer(o.customerId);
+              const v = getVehicle(o.vehicleId);
+              const total = Number(o.payment?.total||0);
+              const paid = Number(o.payment?.paid||0);
+              return `
+                <tr>
+                  <td><b>${esc(orderLabel(o))}</b></td>
+                  <td>${esc(fmtDT(o.createdAt))}</td>
+                  <td>${esc(o.branch||'—')}</td>
+                  <td>${o.priority==='مستعجل' ? '<span class="badge danger">مستعجل</span>' : '<span class="badge">عادي</span>'}</td>
+                  <td>${esc(c?.name||'—')}<div class="muted">${esc(c?.phone||'')}</div></td>
+                  <td>${esc(v?.plate||v?.vin||'—')}<div class="muted">${esc(v?.model||'')} ${esc(v?.year||'')}</div></td>
+                  <td>${statusBadge(o.status)}</td>
+                  <td><b>${money(total)}</b> / ${money(paid)} <span class="muted">${esc(settings.currency)}</span></td>
+                  <td>
+                    <div class="row-actions">
+                      <button class="mini" data-open-order="${esc(o.id)}">فتح</button>
+                      <button class="mini danger" data-cancel-order="${esc(o.id)}">إلغاء</button>
+                    </div>
+                  </td>
+                </tr>
+              `;
+            }).join('') : `<tr><td colspan="9" class="muted">لا توجد طلبات بعد. افتح أول طلب صيانة الآن.</td></tr>`}
+          </tbody>
+        </table>
+      </div>
+    `;
+  }
+
+  function renderSettings(){
+    const pUrl = portalUrl();
+    const cfg = liveConfig();
+    const qr = `https://api.qrserver.com/v1/create-qr-code/?size=220x220&data=${encodeURIComponent(pUrl)}`;
+    return `
+      <div class="card">
+        <h1 class="h1">الإعدادات</h1>
+        <div class="muted">هذه الإعدادات تحفظ محليًا على جهازك فقط</div>
+        <div class="hr"></div>
+        <div class="form">
+          <div>
+            <label>اسم المنشأة (يظهر في الطباعة)</label>
+            <input id="stCompany" value="${esc(settings.companyName||'')}" />
+          </div>
+          <div>
+            <label>العملة</label>
+            <input id="stCurrency" value="${esc(settings.currency||'ريال')}" />
+          </div>
+          <div>
+            <label>نسبة VAT (مثال: 0.15 = 15%)</label>
+            <input id="stVat" type="number" step="0.01" value="${Number(settings.vatRate||0.15)}" />
+          </div>
+          <div>
+            <label>ضمان الصيانة (أيام)</label>
+            <input id="stWarranty" type="number" step="1" value="${Number(settings.serviceWarrantyDays||30)}" />
+          </div>
+          <div class="full">
+            <label>الفروع (افصل بين الفروع بفاصلة)</label>
+            <input id="stBranches" value="${esc((settings.branches||[]).join('، '))}" />
+          </div>
+          <div class="full">
+            <button class="btn primary" id="saveSettings">حفظ الإعدادات</button>
+          </div>
+        </div>
+
+        <div class="hr"></div>
+        <div style="font-weight:900; font-size:16px;">بوابة العميل (QR) — إضافة طلب يظهر عندك مباشرة</div>
+        <div class="muted" style="margin-top:6px; line-height:1.9; font-weight:800">
+          تعمل هذه الميزة فقط عند رفع النظام على استضافة cPanel ووضع مجلد <b>api</b> بجانب هذا الملف.
+          بعدها العميل يفتح نموذج <b>client.html</b> ويُرسل الطلب، والنظام عندك يسحبه تلقائيًا.
+        </div>
+        <div class="form" style="margin-top:12px;">
+          <div>
+            <label>تفعيل الاستقبال المباشر</label>
+            <select id="stLiveEnabled">
+              <option value="1" ${cfg.enabled? 'selected':''}>مفعّل</option>
+              <option value="0" ${!cfg.enabled? 'selected':''}>غير مفعّل</option>
+            </select>
+          </div>
+          <div>
+            <label>مجلد API (داخل الاستضافة)</label>
+            <input id="stLiveApiBase" value="${esc(cfg.apiBase)}" placeholder="مثال: api" />
+          </div>
+          <div>
+            <label>مفتاح الأدمن (لجهازك فقط)</label>
+            <input id="stLiveAdminKey" value="${esc(cfg.adminKey)}" placeholder="اكتب مفتاح قوي" />
+            <div class="hint">هذا المفتاح يُستخدم لسحب/تأكيد الطلبات من السيرفر. لا تشاركه مع العملاء.</div>
+          </div>
+          <div class="full">
+            <label>رابط بوابة العميل (انسخه أو اعمل له QR)</label>
+            <div style="display:flex; gap:10px; align-items:center; flex-wrap:wrap;">
+              <input id="stPortalUrl" value="${esc(pUrl)}" readonly style="flex:1; min-width:260px" />
+              <button class="btn" id="copyPortal">نسخ الرابط</button>
+            </div>
+          </div>
+          <div class="full" style="display:flex; gap:16px; align-items:center; flex-wrap:wrap;">
+            <div>
+              <div class="muted" style="font-weight:900; margin-bottom:8px;">QR للعميل</div>
+              <img src="${qr}" alt="QR" style="width:220px; height:220px; border-radius:14px; border:1px solid var(--line); background:#fff;" />
+            </div>
+            <div class="muted" style="line-height:1.9; font-weight:800;">
+              <b>مهم:</b> لازم يكون النظام على رابط (https://...) عشان QR يشتغل عند العميل.
+              <br>بعد الرفع: افتح النظام من نفس الرابط على جهازك، واكتب مفتاح الأدمن هنا.
+            </div>
+          </div>
+        </div>
+
+        <div class="hr"></div>
+        <div class="muted" style="font-weight:900">ملاحظات مهمة</div>
+        <ul class="muted" style="margin:10px 0 0; line-height:1.9; font-weight:800">
+          <li>البيانات تُحفظ داخل المتصفح (LocalStorage). إذا مسحت بيانات المتصفح قد تفقدها.</li>
+          <li>استخدم <b>تصدير البيانات</b> بشكل دوري لعمل نسخة احتياطية.</li>
+          <li>يمكن لاحقًا ربط النظام بمخزون/محاسبة عبر API عند توفر سيرفر.</li>
+        </ul>
+      </div>
+    `;
+  }
+
+  // ------------------------
+  // Modals: Customer / Vehicle / Order
+  // ------------------------
+  function openModal({title, sub, bodyHTML, onBind}){
+    $('#modalTitle').textContent = title;
+    $('#modalSub').textContent = sub || '';
+    $('#modalBody').innerHTML = bodyHTML;
+    $('#modal').classList.add('open');
+    if(typeof onBind === 'function') onBind();
+  }
+  function closeModal(){
+    $('#modal').classList.remove('open');
+    $('#modalBody').innerHTML = '';
+  }
+
+  function modalCustomer(editId=null){
+    const c = editId ? customers.find(x=>x.id===editId) : null;
+    openModal({
+      title: c? 'تعديل عميل' : 'إضافة عميل',
+      sub: 'رقم العميل • الاسم • الجوال • مدينة/فرع • ملاحظات',
+      bodyHTML: `
+        <div class="form">
+          <div>
+            <label>رقم العميل</label>
+            <input id="cCode" placeholder="مثال: C-1001" value="${esc(c?.code||'')}" />
+          </div>
+          <div>
+            <label>اسم العميل</label>
+            <input id="cName" placeholder="اسم العميل" value="${esc(c?.name||'')}" />
+          </div>
+          <div>
+            <label>الجوال</label>
+            <input id="cPhone" placeholder="05xxxxxxxx" value="${esc(c?.phone||'')}" />
+          </div>
+          <div>
+            <label>المدينة</label>
+            <input id="cCity" placeholder="الرياض" value="${esc(c?.city||'')}" />
+          </div>
+          <div>
+            <label>الفرع</label>
+            <select id="cBranch">
+              <option value="">—</option>
+              ${(settings.branches||[]).map(b=>`<option ${b===c?.branch?'selected':''} value="${esc(b)}">${esc(b)}</option>`).join('')}
+            </select>
+          </div>
+          <div>
+            <label>أولوية/ملاحظات (عميل حساس…)</label>
+            <input id="cNotes" placeholder="عميل حساس / أولوية" value="${esc(c?.notes||'')}" />
+          </div>
+          <div class="full" style="display:flex; gap:10px; justify-content:flex-start; flex-wrap:wrap; margin-top:6px;">
+            <button class="btn primary" id="saveCustomer">حفظ</button>
+            ${c? `<button class="btn" id="openCustomerOrders">عرض طلبات العميل</button>`:''}
+          </div>
+        </div>
+      `,
+      onBind: ()=>{
+        $('#saveCustomer').onclick = ()=>{
+          const data = {
+            id: c?.id || uid(),
+            code: $('#cCode').value.trim(),
+            name: $('#cName').value.trim(),
+            phone: $('#cPhone').value.trim(),
+            city: $('#cCity').value.trim(),
+            branch: $('#cBranch').value,
+            notes: $('#cNotes').value.trim(),
+            updatedAt: nowISO()
+          };
+          if(!data.name){ toast('الاسم مطلوب', 'warn'); return; }
+          if(c){
+            customers = customers.map(x=> x.id===c.id ? {...x, ...data} : x);
+          }else{
+            customers.push({...data, createdAt: nowISO()});
+          }
+          persistAll();
+          toast('تم حفظ العميل');
+          closeModal();
+          render();
+        };
+
+        const btn = $('#openCustomerOrders');
+        if(btn){
+          btn.onclick = ()=>{
+            searchText = (c?.phone || c?.name || '').trim();
+            $('#search').value = searchText;
+            view = 'orders';
+            closeModal();
+            render();
+          };
+        }
+      }
+    });
+  }
+
+  function modalVehicle(editId=null){
+    const v = editId ? vehicles.find(x=>x.id===editId) : null;
+    openModal({
+      title: v? 'تعديل مركبة/جهاز' : 'إضافة مركبة/جهاز',
+      sub: 'لوحة/شاصي/سيريال • موديل • سنة • لون • عداد/ساعات',
+      bodyHTML: `
+        <div class="form">
+          <div>
+            <label>رقم اللوحة</label>
+            <input id="vPlate" placeholder="مثال: أ ب ج 1234" value="${esc(v?.plate||'')}" />
+          </div>
+          <div>
+            <label>رقم الشاصي / VIN</label>
+            <input id="vVIN" placeholder="VIN" value="${esc(v?.vin||'')}" />
+          </div>
+          <div>
+            <label>السيريال (للأجهزة)</label>
+            <input id="vSerial" placeholder="Serial" value="${esc(v?.serial||'')}" />
+          </div>
+          <div>
+            <label>الموديل</label>
+            <input id="vModel" placeholder="مثال: GSX-S750" value="${esc(v?.model||'')}" />
+          </div>
+          <div>
+            <label>السنة</label>
+            <input id="vYear" placeholder="2023" value="${esc(v?.year||'')}" />
+          </div>
+          <div>
+            <label>اللون</label>
+            <input id="vColor" placeholder="أسود" value="${esc(v?.color||'')}" />
+          </div>
+          <div>
+            <label>عداد/ساعات تشغيل</label>
+            <input id="vMeter" placeholder="مثال: 12500 كم" value="${esc(v?.meter||'')}" />
+          </div>
+          <div>
+            <label>ملاحظات</label>
+            <input id="vNotes" placeholder="ملاحظات" value="${esc(v?.notes||'')}" />
+          </div>
+          <div class="full" style="display:flex; gap:10px; justify-content:flex-start; flex-wrap:wrap; margin-top:6px;">
+            <button class="btn primary" id="saveVehicle">حفظ</button>
+          </div>
+        </div>
+      `,
+      onBind: ()=>{
+        $('#saveVehicle').onclick = ()=>{
+          const data = {
+            id: v?.id || uid(),
+            plate: $('#vPlate').value.trim(),
+            vin: $('#vVIN').value.trim(),
+            serial: $('#vSerial').value.trim(),
+            model: $('#vModel').value.trim(),
+            year: $('#vYear').value.trim(),
+            color: $('#vColor').value.trim(),
+            meter: $('#vMeter').value.trim(),
+            notes: $('#vNotes').value.trim(),
+            updatedAt: nowISO()
+          };
+          if(!data.plate && !data.vin && !data.serial){ toast('أدخل لوحة أو شاصي/VIN أو سيريال', 'warn'); return; }
+          if(v){
+            vehicles = vehicles.map(x=> x.id===v.id ? {...x, ...data} : x);
+          }else{
+            vehicles.push({...data, createdAt: nowISO()});
+          }
+          persistAll();
+          toast('تم حفظ المركبة');
+          closeModal();
+          render();
+        };
+      }
+    });
+  }
+
+  function modalNewOrder(prefill={}){
+    // Ensure at least one customer/vehicle exists
+    const customerOptions = customers.map(c=>`<option value="${esc(c.id)}">${esc(c.name)} • ${esc(c.phone||'')}</option>`).join('');
+    const vehicleOptions = vehicles.map(v=>{
+      const label = (v.plate||v.vin||v.serial||'—');
+      return `<option value="${esc(v.id)}">${esc(label)} • ${esc(v.model||'')} ${esc(v.year||'')}</option>`;
+    }).join('');
+
+    openModal({
+      title: 'فتح طلب صيانة (استقبال)',
+      sub: 'البيانات الأساسية للطلب — يمكن إكمال بقية الخطوات داخل الطلب',
+      bodyHTML: `
+        <div class="form">
+          <div>
+            <label>الفرع</label>
+            <select id="oBranch">
+              ${(settings.branches||[]).map(b=>`<option ${b===prefill.branch?'selected':''} value="${esc(b)}">${esc(b)}</option>`).join('')}
+            </select>
+          </div>
+          <div>
+            <label>الأولوية</label>
+            <select id="oPriority">
+              <option value="عادي">عادي</option>
+              <option value="مستعجل">مستعجل</option>
+            </select>
+          </div>
+          <div>
+            <label>العميل</label>
+            <div style="display:flex; gap:8px; align-items:center;">
+              <select id="oCustomer" style="flex:1">
+                <option value="">— اختر عميل —</option>
+                ${customerOptions}
+              </select>
+              <button class="mini" id="oAddCustomer">+ عميل</button>
+            </div>
+          </div>
+          <div>
+            <label>المركبة/الجهاز</label>
+            <div style="display:flex; gap:8px; align-items:center;">
+              <select id="oVehicle" style="flex:1">
+                <option value="">— اختر مركبة —</option>
+                ${vehicleOptions}
+              </select>
+              <button class="mini" id="oAddVehicle">+ مركبة</button>
+            </div>
+          </div>
+          <div>
+            <label>الفني المسؤول</label>
+            <input id="oTech" placeholder="اسم الفني" value="${esc(prefill.technician||'')}" />
+          </div>
+          <div>
+            <label>الحالة</label>
+            <select id="oStatus">
+              ${STATUSES.map(s=>`<option ${s==='جديد'?'selected':''} value="${esc(s)}">${esc(s)}</option>`).join('')}
+            </select>
+          </div>
+          <div class="full">
+            <label>المشكلة / الشكوى</label>
+            <textarea id="oProblem" placeholder="اشرح المشكلة كما ذكرها العميل…">${esc(prefill.problem||'')}</textarea>
+          </div>
+          <div class="full" style="display:flex; gap:10px; justify-content:flex-start; flex-wrap:wrap;">
+            <button class="btn primary" id="createOrder">فتح الطلب</button>
+            <button class="btn" id="createOrderAndOpen">فتح + دخول على الطلب</button>
+          </div>
+          <div class="full muted" style="line-height:1.8;">
+            <b>ملاحظة:</b> بعد فتح الطلب ستجد داخل الطلب تبويبات: تشخيص، عرض سعر، موافقة، تنفيذ، دفع/إقفال.
+          </div>
+        </div>
+      `,
+      onBind: ()=>{
+        $('#oAddCustomer').onclick = ()=> modalCustomer();
+        $('#oAddVehicle').onclick = ()=> modalVehicle();
+
+        function create(thenOpen){
+          const customerId = $('#oCustomer').value;
+          const vehicleId = $('#oVehicle').value;
+          if(!customerId){ toast('اختر العميل', 'warn'); return; }
+          if(!vehicleId){ toast('اختر المركبة', 'warn'); return; }
+
+          const o = {
+            id: uid(),
+            seq: orderCounter++,
+            createdAt: nowISO(),
+            updatedAt: nowISO(),
+            branch: $('#oBranch').value,
+            priority: $('#oPriority').value,
+            customerId,
+            vehicleId,
+            problem: $('#oProblem').value.trim(),
+            technician: $('#oTech').value.trim(),
+            status: $('#oStatus').value,
+            diagnosis: { result:'', cause:'', recommendations:'', attachments:'' },
+            quotation: { services:[], parts:[], vatRate: settings.vatRate, discount:0, notes:'' },
+            approval: { decision:'', notes:'', approvedAt:'', approvedBy:'' },
+            execution: { checklist:[], partsUsed:[], techNotes:'', startedAt:'', finishedAt:'' },
+            payment: { method:'', total:0, paid:0, remaining:0, deliveredAt:'', receivedBy:'', warrantyDays: settings.serviceWarrantyDays, warrantyTerms:'' },
+            archived: false
+          };
+          orders.push(o);
+          persistAll();
+          toast('تم فتح طلب الصيانة');
+          closeModal();
+          view = 'orders';
+          render();
+          if(thenOpen){ openOrder(o.id); }
+        }
+
+        $('#createOrder').onclick = ()=> create(false);
+        $('#createOrderAndOpen').onclick = ()=> create(true);
+      }
+    });
+  }
+
+  function openOrder(orderId){
+    const o = orders.find(x=>x.id===orderId);
+    if(!o){ toast('لم يتم العثور على الطلب', 'danger'); return; }
+
+    const c = getCustomer(o.customerId);
+    const v = getVehicle(o.vehicleId);
+
+    openModal({
+      title: `تفاصيل الطلب: ${orderLabel(o)}`,
+      sub: `${esc(o.branch||'—')} • ${esc(c?.name||'—')} • ${esc(v?.plate||v?.vin||'—')}`,
+      bodyHTML: renderOrderModal(o),
+      onBind: ()=> bindOrderModal(o.id)
+    });
+  }
+
+  function renderOrderModal(o){
+    return `
+      <div class="card" style="box-shadow:none; border-color: rgba(255,255,255,.08)">
+        <div style="display:flex; justify-content:space-between; gap:10px; flex-wrap:wrap; align-items:flex-start;">
+          <div>
+            <div class="muted">رقم الطلب</div>
+            <div style="font-weight:900; font-size:18px;">${esc(orderLabel(o))}</div>
+            <div class="muted" style="margin-top:6px">تاريخ الفتح: ${esc(fmtDT(o.createdAt))}</div>
+          </div>
+          <div style="min-width:260px">
+            <label>الحالة الحالية</label>
+            <select id="omStatus">
+              ${STATUSES.map(s=>`<option ${s===o.status?'selected':''} value="${esc(s)}">${esc(s)}</option>`).join('')}
+            </select>
+            <div class="muted" style="margin-top:6px">آخر تحديث: ${esc(fmtDT(o.updatedAt))}</div>
+          </div>
+          <div class="row-actions">
+            <button class="mini" id="omPrintQuote">طباعة عرض السعر</button>
+            <button class="mini" id="omWhatsApp">إرسال واتساب</button>
+            <button class="mini danger" id="omCancel">إلغاء الطلب</button>
+          </div>
+        </div>
+
+        <div class="tabs" id="omTabs">
+          <button class="tab active" data-tab="basic">بيانات الطلب</button>
+          <button class="tab" data-tab="diagnosis">التشخيص</button>
+          <button class="tab" data-tab="quote">عرض السعر</button>
+          <button class="tab" data-tab="approval">الموافقة</button>
+          <button class="tab" data-tab="execution">التنفيذ</button>
+          <button class="tab" data-tab="payment">الدفع والإقفال</button>
+        </div>
+
+        <div class="hr"></div>
+
+        <div id="omTabBody">
+          ${renderOrderTab(o,'basic')}
+        </div>
+
+        <div class="hr"></div>
+        <div style="display:flex; gap:10px; flex-wrap:wrap;">
+          <button class="btn primary" id="omSave">حفظ التعديلات</button>
+          <button class="btn" id="omClose">إغلاق النافذة</button>
+        </div>
+      </div>
+    `;
+  }
+
+  function renderOrderTab(o, tab){
+    const c = getCustomer(o.customerId);
+    const v = getVehicle(o.vehicleId);
+
+    if(tab==='basic'){
+      return `
+        <div class="form">
+          <div>
+            <label>الفرع</label>
+            <select id="omBranch">
+              ${(settings.branches||[]).map(b=>`<option ${b===o.branch?'selected':''} value="${esc(b)}">${esc(b)}</option>`).join('')}
+            </select>
+          </div>
+          <div>
+            <label>الأولوية</label>
+            <select id="omPriority">
+              <option ${o.priority==='عادي'?'selected':''} value="عادي">عادي</option>
+              <option ${o.priority==='مستعجل'?'selected':''} value="مستعجل">مستعجل</option>
+            </select>
+          </div>
+          <div>
+            <label>العميل</label>
+            <div class="muted" style="font-weight:900">${esc(c?.name||'—')} • ${esc(c?.phone||'')}</div>
+            <button class="mini" data-jump="customer">فتح بطاقة العميل</button>
+          </div>
+          <div>
+            <label>المركبة/الجهاز</label>
+            <div class="muted" style="font-weight:900">${esc(v?.plate||v?.vin||v?.serial||'—')} • ${esc(v?.model||'')} ${esc(v?.year||'')}</div>
+            <button class="mini" data-jump="vehicle">فتح بطاقة المركبة</button>
+          </div>
+          <div>
+            <label>الفني المسؤول</label>
+            <input id="omTech" value="${esc(o.technician||'')}" placeholder="اسم الفني" />
+          </div>
+          <div>
+            <label>تاريخ/وقت الفتح</label>
+            <input value="${esc(fmtDT(o.createdAt))}" disabled />
+          </div>
+          <div class="full">
+            <label>المشكلة/الشكوى</label>
+            <textarea id="omProblem">${esc(o.problem||'')}</textarea>
+          </div>
+          <div class="full">
+            <label>ملاحظات داخلية</label>
+            <textarea id="omInternal" placeholder="ملاحظات استقبال/إدارة…">${esc(o.internalNotes||'')}</textarea>
+          </div>
+        </div>
+      `;
+    }
+
+    if(tab==='diagnosis'){
+      const d = o.diagnosis||{};
+      return `
+        <div class="form">
+          <div class="full">
+            <label>نتائج الفحص</label>
+            <textarea id="omDiagResult" placeholder="نتائج الفحص…">${esc(d.result||'')}</textarea>
+          </div>
+          <div class="full">
+            <label>سبب العطل (إن وجد)</label>
+            <textarea id="omDiagCause" placeholder="سبب العطل…">${esc(d.cause||'')}</textarea>
+          </div>
+          <div class="full">
+            <label>توصيات الإصلاح</label>
+            <textarea id="omDiagReco" placeholder="التوصيات…">${esc(d.recommendations||'')}</textarea>
+          </div>
+          <div class="full">
+            <label>صور/مرفقات (روابط أو نص)</label>
+            <textarea id="omDiagAttach" placeholder="ضع روابط صور/ملفات (اختياري)…">${esc(d.attachments||'')}</textarea>
+          </div>
+          <div class="full muted" style="line-height:1.8">
+            <b>اقتراح سير العمل:</b> بعد التشخيص غيّر الحالة إلى <b>بانتظار موافقة العميل</b> ثم جهّز عرض السعر.
+          </div>
+        </div>
+      `;
+    }
+
+    if(tab==='quote'){
+      const q = o.quotation||{services:[],parts:[],vatRate:settings.vatRate,discount:0,notes:''};
+      const servicesRows = (q.services||[]).map((s,i)=>`
+        <tr>
+          <td>${i+1}</td>
+          <td><input data-q="svcName" data-i="${i}" value="${esc(s.name||'')}" placeholder="اسم الخدمة" /></td>
+          <td><input data-q="svcDur" data-i="${i}" value="${esc(s.duration||'')}" placeholder="مدة تقديرية" /></td>
+          <td><input data-q="svcPrice" data-i="${i}" type="number" step="0.01" value="${Number(s.price||0)}" /></td>
+          <td><button class="mini danger" data-q-del="svc" data-i="${i}">حذف</button></td>
+        </tr>
+      `).join('');
+
+      const partsRows = (q.parts||[]).map((p,i)=>`
+        <tr>
+          <td>${i+1}</td>
+          <td><input data-q="partSku" data-i="${i}" value="${esc(p.sku||'')}" placeholder="رقم/كود الصنف" /></td>
+          <td><input data-q="partName" data-i="${i}" value="${esc(p.name||'')}" placeholder="اسم القطعة" /></td>
+          <td><input data-q="partQty" data-i="${i}" type="number" step="1" value="${Number(p.qty||1)}" /></td>
+          <td><input data-q="partPrice" data-i="${i}" type="number" step="0.01" value="${Number(p.price||0)}" /></td>
+          <td><input data-q="partDisc" data-i="${i}" type="number" step="0.01" value="${Number(p.discount||0)}" /></td>
+          <td><button class="mini danger" data-q-del="part" data-i="${i}">حذف</button></td>
+        </tr>
+      `).join('');
+
+      const totals = calcQuoteTotals(q);
+
+      return `
+        <div class="split">
+          <div>
+            <div class="muted" style="font-weight:900">خدمات (أجور)</div>
+            <div class="hr"></div>
+            <table>
+              <thead>
+                <tr><th>#</th><th>اسم الخدمة</th><th>المدة</th><th>السعر</th><th></th></tr>
+              </thead>
+              <tbody>
+                ${servicesRows || `<tr><td colspan="5" class="muted">لا توجد خدمات بعد.</td></tr>`}
+              </tbody>
+            </table>
+            <div style="margin-top:10px; display:flex; gap:10px; flex-wrap:wrap;">
+              <button class="mini" id="qAddSvc">+ إضافة خدمة</button>
+            </div>
+
+            <div class="hr"></div>
+
+            <div class="muted" style="font-weight:900">قطع غيار</div>
+            <div class="hr"></div>
+            <table>
+              <thead>
+                <tr><th>#</th><th>كود</th><th>اسم القطعة</th><th>كمية</th><th>سعر</th><th>خصم</th><th></th></tr>
+              </thead>
+              <tbody>
+                ${partsRows || `<tr><td colspan="7" class="muted">لا توجد قطع بعد.</td></tr>`}
+              </tbody>
+            </table>
+            <div style="margin-top:10px; display:flex; gap:10px; flex-wrap:wrap;">
+              <button class="mini" id="qAddPart">+ إضافة قطعة</button>
+            </div>
+
+            <div class="hr"></div>
+            <div class="form">
+              <div>
+                <label>ملاحظات للعميل (اختياري)</label>
+                <textarea id="qNotes" placeholder="ملاحظات…">${esc(q.notes||'')}</textarea>
+              </div>
+              <div>
+                <label>خصم إضافي عام (اختياري)</label>
+                <input id="qGlobalDiscount" type="number" step="0.01" value="${Number(q.discount||0)}" />
+              </div>
+              <div>
+                <label>VAT</label>
+                <input id="qVat" type="number" step="0.01" value="${Number(q.vatRate ?? settings.vatRate)}" />
+              </div>
+              <div>
+                <label>تلميح</label>
+                <input value="بعد تجهيز العرض غيّر الحالة إلى: بانتظار موافقة العميل" disabled />
+              </div>
+            </div>
+          </div>
+
+          <div>
+            <div class="card" style="box-shadow:none;">
+              <div class="muted" style="font-weight:900">ملخص العرض</div>
+              <div class="hr"></div>
+              <div class="form" style="grid-template-columns:1fr">
+                <div>
+                  <label>إجمالي الخدمات</label>
+                  <input id="sumSvc" value="${money(totals.services)} ${esc(settings.currency)}" disabled />
+                </div>
+                <div>
+                  <label>إجمالي القطع</label>
+                  <input id="sumParts" value="${money(totals.parts)} ${esc(settings.currency)}" disabled />
+                </div>
+                <div>
+                  <label>إجمالي الخصومات</label>
+                  <input id="sumDisc" value="${money(totals.discounts)} ${esc(settings.currency)}" disabled />
+                </div>
+                <div>
+                  <label>الإجمالي قبل الضريبة</label>
+                  <input id="sumSub" value="${money(totals.subtotal)} ${esc(settings.currency)}" disabled />
+                </div>
+                <div>
+                  <label>VAT (${Math.round((q.vatRate ?? settings.vatRate)*100)}%)</label>
+                  <input id="sumVat" value="${money(totals.vat)} ${esc(settings.currency)}" disabled />
+                </div>
+                <div>
+                  <label>الإجمالي النهائي</label>
+                  <input id="sumTotal" value="${money(totals.total)} ${esc(settings.currency)}" disabled />
+                </div>
+                <div class="muted" style="line-height:1.9">
+                  <b>مهم:</b> عند حفظ الطلب سيتم تحديث إجمالي الفاتورة في تبويب الدفع تلقائيًا.
+                </div>
+                <div style="display:flex; gap:10px; flex-wrap:wrap;">
+                  <button class="mini" id="qRecalc">تحديث الملخص</button>
+                  <button class="mini" id="qToWhats">تجهيز رسالة واتساب</button>
+                  <button class="mini" id="qToPrint">طباعة</button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      `;
+    }
+
+    if(tab==='approval'){
+      const a = o.approval||{decision:'',notes:'',approvedAt:'',approvedBy:''};
+      const decisionBadge = a.decision ? `<span class="badge ${a.decision==='موافقة كاملة'?'ok': a.decision==='موافقة جزئية'?'warn':'danger'}">${esc(a.decision)}</span>` : `<span class="badge">—</span>`;
+      return `
+        <div class="form">
+          <div>
+            <label>القرار الحالي</label>
+            <div style="padding:10px 12px; border:1px solid rgba(255,255,255,.10); border-radius:12px; background: rgba(11,18,32,.35);">
+              ${decisionBadge}
+              <div class="muted" style="margin-top:8px">تاريخ: ${esc(a.approvedAt?fmtDT(a.approvedAt):'—')} • بواسطة: ${esc(a.approvedBy||'—')}</div>
+            </div>
+          </div>
+          <div>
+            <label>اسم الموظف</label>
+            <input id="apBy" placeholder="اسم الموظف" value="${esc(a.approvedBy||'')}" />
+          </div>
+          <div class="full">
+            <label>ملاحظات العميل</label>
+            <textarea id="apNotes" placeholder="ملاحظات العميل…">${esc(a.notes||'')}</textarea>
+          </div>
+
+          <div class="full" style="display:flex; gap:10px; flex-wrap:wrap;">
+            <button class="btn primary" id="apFull">موافقة كاملة</button>
+            <button class="btn" id="apPartial">موافقة جزئية</button>
+            <button class="btn danger" id="apReject">رفض</button>
+          </div>
+
+          <div class="full muted" style="line-height:1.9">
+            <b>قاعدة مقترحة:</b> عند الموافقة يتم نقل الحالة إلى <b>جاري التنفيذ</b> (أو <b>بانتظار قطع</b> إذا لازم). عند الرفض يتم نقلها إلى <b>ملغي</b>.
+          </div>
+        </div>
+      `;
+    }
+
+    if(tab==='execution'){
+      const ex = o.execution||{checklist:[],partsUsed:[],techNotes:'',startedAt:'',finishedAt:''};
+      const checklistRows = (ex.checklist||[]).map((t,i)=>`
+        <tr>
+          <td>${i+1}</td>
+          <td><input data-ex="taskName" data-i="${i}" value="${esc(t.name||'')}" placeholder="مهمة…" /></td>
+          <td>
+            <select data-ex="taskDone" data-i="${i}">
+              <option ${t.done? '':'selected'} value="0">لم يتم</option>
+              <option ${t.done? 'selected':''} value="1">تم</option>
+            </select>
+          </td>
+          <td><input data-ex="taskStart" data-i="${i}" value="${esc(t.start||'')}" placeholder="بدء" /></td>
+          <td><input data-ex="taskEnd" data-i="${i}" value="${esc(t.end||'')}" placeholder="انتهاء" /></td>
+          <td><button class="mini danger" data-ex-del="task" data-i="${i}">حذف</button></td>
+        </tr>
+      `).join('');
+
+      const partsUsedRows = (ex.partsUsed||[]).map((p,i)=>`
+        <tr>
+          <td>${i+1}</td>
+          <td><input data-ex="useSku" data-i="${i}" value="${esc(p.sku||'')}" placeholder="كود" /></td>
+          <td><input data-ex="useName" data-i="${i}" value="${esc(p.name||'')}" placeholder="اسم" /></td>
+          <td><input data-ex="useQty" data-i="${i}" type="number" step="1" value="${Number(p.qty||1)}" /></td>
+          <td><button class="mini danger" data-ex-del="use" data-i="${i}">حذف</button></td>
+        </tr>
+      `).join('');
+
+      return `
+        <div class="split">
+          <div>
+            <div class="muted" style="font-weight:900">قائمة مهام (Checklist)</div>
+            <div class="hr"></div>
+            <table>
+              <thead>
+                <tr><th>#</th><th>المهمة</th><th>الحالة</th><th>بدء</th><th>انتهاء</th><th></th></tr>
+              </thead>
+              <tbody>
+                ${checklistRows || `<tr><td colspan="6" class="muted">لا توجد مهام بعد.</td></tr>`}
+              </tbody>
+            </table>
+            <div style="margin-top:10px; display:flex; gap:10px; flex-wrap:wrap;">
+              <button class="mini" id="exAddTask">+ إضافة مهمة</button>
+              <button class="mini" id="exStartNow">تسجيل وقت بدء الآن</button>
+              <button class="mini" id="exFinishNow">تسجيل وقت انتهاء الآن</button>
+            </div>
+
+            <div class="hr"></div>
+            <div class="muted" style="font-weight:900">قطع مستخدمة (تخصم من المخزون لاحقًا)</div>
+            <div class="hr"></div>
+            <table>
+              <thead>
+                <tr><th>#</th><th>كود</th><th>اسم</th><th>كمية</th><th></th></tr>
+              </thead>
+              <tbody>
+                ${partsUsedRows || `<tr><td colspan="5" class="muted">لا توجد قطع مستخدمة بعد.</td></tr>`}
+              </tbody>
+            </table>
+            <div style="margin-top:10px; display:flex; gap:10px; flex-wrap:wrap;">
+              <button class="mini" id="exAddUse">+ إضافة قطعة مستخدمة</button>
+            </div>
+          </div>
+
+          <div>
+            <div class="form" style="grid-template-columns:1fr">
+              <div>
+                <label>وقت بدء التنفيذ</label>
+                <input id="exStartedAt" value="${esc(ex.startedAt||'')}" placeholder="YYYY-MM-DD HH:MM" />
+              </div>
+              <div>
+                <label>وقت انتهاء التنفيذ</label>
+                <input id="exFinishedAt" value="${esc(ex.finishedAt||'')}" placeholder="YYYY-MM-DD HH:MM" />
+              </div>
+              <div>
+                <label>ملاحظات الفني</label>
+                <textarea id="exTechNotes" placeholder="ملاحظات…">${esc(ex.techNotes||'')}</textarea>
+              </div>
+              <div class="muted" style="line-height:1.9">
+                <b>اقتراح:</b> بعد اكتمال التنفيذ غيّر الحالة إلى <b>جاهز للتسليم</b>.
+              </div>
+            </div>
+          </div>
+        </div>
+      `;
+    }
+
+    if(tab==='payment'){
+      const p = o.payment||{method:'',total:0,paid:0,remaining:0,deliveredAt:'',receivedBy:'',warrantyDays:settings.serviceWarrantyDays,warrantyTerms:''};
+      const remaining = Math.max(0, Number(p.total||0) - Number(p.paid||0));
+      return `
+        <div class="form">
+          <div>
+            <label>إجمالي الفاتورة</label>
+            <input id="payTotal" type="number" step="0.01" value="${Number(p.total||0)}" />
+          </div>
+          <div>
+            <label>المدفوع</label>
+            <input id="payPaid" type="number" step="0.01" value="${Number(p.paid||0)}" />
+          </div>
+          <div>
+            <label>المتبقي</label>
+            <input id="payRem" value="${money(remaining)} ${esc(settings.currency)}" disabled />
+          </div>
+          <div>
+            <label>طريقة الدفع</label>
+            <select id="payMethod">
+              <option value="">—</option>
+              ${['كاش','شبكة','تحويل','بطاقة','آجل'].map(m=>`<option ${m===p.method?'selected':''} value="${esc(m)}">${esc(m)}</option>`).join('')}
+            </select>
+          </div>
+          <div>
+            <label>تاريخ التسليم</label>
+            <input id="payDelivered" placeholder="YYYY-MM-DD HH:MM" value="${esc(p.deliveredAt||'')}" />
+          </div>
+          <div>
+            <label>اسم المستلم</label>
+            <input id="payReceivedBy" placeholder="اسم المستلم" value="${esc(p.receivedBy||'')}" />
+          </div>
+
+          <div>
+            <label>ضمان الصيانة (أيام)</label>
+            <input id="payWarrantyDays" type="number" step="1" value="${Number(p.warrantyDays ?? settings.serviceWarrantyDays)}" />
+          </div>
+          <div>
+            <label>شروط الضمان</label>
+            <input id="payWarrantyTerms" placeholder="مثال: على الأجور فقط" value="${esc(p.warrantyTerms||'')}" />
+          </div>
+
+          <div class="full" style="display:flex; gap:10px; flex-wrap:wrap;">
+            <button class="btn primary" id="payCloseOrder">تحصيل + إقفال الطلب</button>
+            <button class="btn" id="payMarkReady">تعيين: جاهز للتسليم</button>
+          </div>
+
+          <div class="full muted" style="line-height:1.9">
+            <b>معلومة:</b> عند إقفال الطلب سيتم تعيين الحالة إلى <b>مُسلّم/مغلق</b> واعتباره مؤرشف.
+          </div>
+        </div>
+      `;
+    }
+
+    return `<div class="muted">—</div>`;
+  }
+
+  function calcQuoteTotals(q){
+    const services = (q.services||[]).reduce((s,x)=> s + Number(x.price||0), 0);
+    const partsGross = (q.parts||[]).reduce((s,x)=> s + (Number(x.qty||0) * Number(x.price||0)), 0);
+    const partDisc = (q.parts||[]).reduce((s,x)=> s + Number(x.discount||0), 0);
+    const globalDisc = Number(q.discount||0);
+    const discounts = partDisc + globalDisc;
+    const parts = Math.max(0, partsGross - partDisc);
+    const subtotal = Math.max(0, services + parts - globalDisc);
+    const vatRate = Number(q.vatRate ?? settings.vatRate);
+    const vat = subtotal * vatRate;
+    const total = subtotal + vat;
+    return { services, parts: partsGross, discounts, subtotal, vat, total };
+  }
+
+  function bindOrderModal(orderId){
+    let activeTab = 'basic';
+
+    const setTab = (tab)=>{
+      activeTab = tab;
+      const o = orders.find(x=>x.id===orderId);
+      if(!o) return;
+      $$('#omTabs .tab').forEach(t=>t.classList.toggle('active', t.dataset.tab===tab));
+      $('#omTabBody').innerHTML = renderOrderTab(o, tab);
+      bindOrderTabHandlers(orderId, tab);
+    };
+
+    // Tabs
+    $$('#omTabs .tab').forEach(btn=>{
+      btn.onclick = ()=> setTab(btn.dataset.tab);
+    });
+
+    // Status change
+    $('#omStatus').onchange = ()=>{
+      const o = orders.find(x=>x.id===orderId);
+      if(!o) return;
+      o.status = $('#omStatus').value;
+      o.updatedAt = nowISO();
+      persistAll();
+      toast('تم تحديث الحالة');
+      render();
+    };
+
+    // Jump
+    $$('#modalBody [data-jump]').forEach(b=>{
+      b.onclick = ()=>{
+        const o = orders.find(x=>x.id===orderId);
+        if(!o) return;
+        if(b.dataset.jump==='customer') modalCustomer(o.customerId);
+        if(b.dataset.jump==='vehicle') modalVehicle(o.vehicleId);
+      };
+    });
+
+    // Print / WhatsApp
+    $('#omPrintQuote').onclick = ()=> printQuotation(orderId);
+    $('#omWhatsApp').onclick = ()=> openWhatsApp(orderId);
+
+    // Cancel
+    $('#omCancel').onclick = ()=>{
+      if(!confirm('هل أنت متأكد من إلغاء الطلب؟')) return;
+      const o = orders.find(x=>x.id===orderId);
+      if(!o) return;
+      o.status = 'ملغي';
+      o.updatedAt = nowISO();
+      persistAll();
+      toast('تم إلغاء الطلب','warn');
+      render();
+      closeModal();
+    };
+
+    // Save
+    $('#omSave').onclick = ()=>{
+      const o = orders.find(x=>x.id===orderId);
+      if(!o) return;
+
+      // Save status & basic always if exists
+      const st = $('#omStatus')?.value;
+      if(st) o.status = st;
+
+      // Save according to activeTab
+      // We do a robust save for all fields if their inputs exist.
+      const maybe = (id) => document.getElementById(id);
+
+      // Basic
+      if(maybe('omBranch')) o.branch = $('#omBranch').value;
+      if(maybe('omPriority')) o.priority = $('#omPriority').value;
+      if(maybe('omTech')) o.technician = $('#omTech').value.trim();
+      if(maybe('omProblem')) o.problem = $('#omProblem').value.trim();
+      if(maybe('omInternal')) o.internalNotes = $('#omInternal').value.trim();
+
+      // Diagnosis
+      if(maybe('omDiagResult')) o.diagnosis.result = $('#omDiagResult').value;
+      if(maybe('omDiagCause')) o.diagnosis.cause = $('#omDiagCause').value;
+      if(maybe('omDiagReco')) o.diagnosis.recommendations = $('#omDiagReco').value;
+      if(maybe('omDiagAttach')) o.diagnosis.attachments = $('#omDiagAttach').value;
+
+      // Quote
+      if(maybe('qNotes')) o.quotation.notes = $('#qNotes').value;
+      if(maybe('qGlobalDiscount')) o.quotation.discount = Number($('#qGlobalDiscount').value||0);
+      if(maybe('qVat')) o.quotation.vatRate = Number($('#qVat').value||settings.vatRate);
+
+      // Execution
+      if(maybe('exTechNotes')) o.execution.techNotes = $('#exTechNotes').value;
+      if(maybe('exStartedAt')) o.execution.startedAt = $('#exStartedAt').value;
+      if(maybe('exFinishedAt')) o.execution.finishedAt = $('#exFinishedAt').value;
+
+      // Payment
+      if(maybe('payTotal')) o.payment.total = Number($('#payTotal').value||0);
+      if(maybe('payPaid')) o.payment.paid = Number($('#payPaid').value||0);
+      if(maybe('payMethod')) o.payment.method = $('#payMethod').value;
+      if(maybe('payDelivered')) o.payment.deliveredAt = $('#payDelivered').value;
+      if(maybe('payReceivedBy')) o.payment.receivedBy = $('#payReceivedBy').value;
+      if(maybe('payWarrantyDays')) o.payment.warrantyDays = Number($('#payWarrantyDays').value||settings.serviceWarrantyDays);
+      if(maybe('payWarrantyTerms')) o.payment.warrantyTerms = $('#payWarrantyTerms').value;
+
+      // Auto-update payment total from quote totals if quote exists
+      if(o.quotation){
+        const totals = calcQuoteTotals(o.quotation);
+        // If user didn't manually change payTotal, still keep consistent by setting it.
+        o.payment.total = Number(totals.total.toFixed(2));
+      }
+      o.payment.remaining = Math.max(0, Number(o.payment.total||0) - Number(o.payment.paid||0));
+
+      o.updatedAt = nowISO();
+      persistAll();
+      toast('تم حفظ الطلب');
+      render();
+      // refresh modal content to reflect computed fields
+      openOrder(orderId);
+    };
+
+    $('#omClose').onclick = closeModal;
+
+    // Initial bind tab
+    bindOrderTabHandlers(orderId, 'basic');
+
+    function bindOrderTabHandlers(orderId, tab){
+      const o = orders.find(x=>x.id===orderId);
+      if(!o) return;
+
+      // Re-bind jumps on re-render
+      $$('#omTabBody [data-jump]').forEach(b=>{
+        b.onclick = ()=>{
+          if(b.dataset.jump==='customer') modalCustomer(o.customerId);
+          if(b.dataset.jump==='vehicle') modalVehicle(o.vehicleId);
+        };
+      });
+
+      // Quote handlers
+      if(tab==='quote'){
+        $('#qAddSvc').onclick = ()=>{
+          o.quotation.services.push({name:'', duration:'', price:0});
+          persistAll();
+          setTab('quote');
+        };
+        $('#qAddPart').onclick = ()=>{
+          o.quotation.parts.push({sku:'', name:'', qty:1, price:0, discount:0});
+          persistAll();
+          setTab('quote');
+        };
+
+        // Input binding
+        $$('#omTabBody [data-q]').forEach(inp=>{
+          inp.oninput = ()=>{
+            const i = Number(inp.dataset.i);
+            const key = inp.dataset.q;
+            if(key==='svcName') o.quotation.services[i].name = inp.value;
+            if(key==='svcDur') o.quotation.services[i].duration = inp.value;
+            if(key==='svcPrice') o.quotation.services[i].price = Number(inp.value||0);
+            if(key==='partSku') o.quotation.parts[i].sku = inp.value;
+            if(key==='partName') o.quotation.parts[i].name = inp.value;
+            if(key==='partQty') o.quotation.parts[i].qty = Number(inp.value||0);
+            if(key==='partPrice') o.quotation.parts[i].price = Number(inp.value||0);
+            if(key==='partDisc') o.quotation.parts[i].discount = Number(inp.value||0);
+          };
+        });
+
+        $$('#omTabBody [data-q-del]').forEach(btn=>{
+          btn.onclick = ()=>{
+            const i = Number(btn.dataset.i);
+            if(btn.dataset.qDel==='svc') o.quotation.services.splice(i,1);
+            if(btn.dataset.qDel==='part') o.quotation.parts.splice(i,1);
+            persistAll();
+            setTab('quote');
+          };
+        });
+
+        $('#qRecalc').onclick = ()=>{
+          // save notes, vat, discount into model
+          o.quotation.notes = $('#qNotes').value;
+          o.quotation.discount = Number($('#qGlobalDiscount').value||0);
+          o.quotation.vatRate = Number($('#qVat').value||settings.vatRate);
+          // update payment total
+          const totals = calcQuoteTotals(o.quotation);
+          o.payment.total = Number(totals.total.toFixed(2));
+          o.payment.remaining = Math.max(0, Number(o.payment.total||0) - Number(o.payment.paid||0));
+          o.updatedAt = nowISO();
+          persistAll();
+          toast('تم تحديث الملخص');
+          setTab('quote');
+        };
+
+        $('#qToWhats').onclick = ()=> openWhatsApp(orderId);
+        $('#qToPrint').onclick = ()=> printQuotation(orderId);
+
+        // keep totals updated on blur
+        $('#qGlobalDiscount').onchange = ()=> $('#qRecalc').click();
+        $('#qVat').onchange = ()=> $('#qRecalc').click();
+      }
+
+      // Approval handlers
+      if(tab==='approval'){
+        const setDecision = (decision)=>{
+          o.approval.decision = decision;
+          o.approval.notes = $('#apNotes').value;
+          o.approval.approvedBy = $('#apBy').value.trim();
+          o.approval.approvedAt = nowISO();
+
+          if(decision === 'موافقة كاملة'){
+            o.status = 'جاري التنفيذ';
+          }
+          if(decision === 'موافقة جزئية'){
+            o.status = 'جاري التنفيذ';
+          }
+          if(decision === 'رفض'){
+            o.status = 'ملغي';
+          }
+          o.updatedAt = nowISO();
+          persistAll();
+          toast('تم تسجيل قرار العميل');
+          // reflect status dropdown
+          $('#omStatus').value = o.status;
+          setTab('approval');
+          render();
+        };
+        $('#apFull').onclick = ()=> setDecision('موافقة كاملة');
+        $('#apPartial').onclick = ()=> setDecision('موافقة جزئية');
+        $('#apReject').onclick = ()=> setDecision('رفض');
+      }
+
+      // Execution handlers
+      if(tab==='execution'){
+        $('#exAddTask').onclick = ()=>{
+          o.execution.checklist.push({name:'', done:false, start:'', end:''});
+          persistAll();
+          setTab('execution');
+        };
+        $('#exAddUse').onclick = ()=>{
+          o.execution.partsUsed.push({sku:'', name:'', qty:1});
+          persistAll();
+          setTab('execution');
+        };
+        $('#exStartNow').onclick = ()=>{
+          o.execution.startedAt = fmtDT(nowISO());
+          persistAll();
+          setTab('execution');
+        };
+        $('#exFinishNow').onclick = ()=>{
+          o.execution.finishedAt = fmtDT(nowISO());
+          persistAll();
+          setTab('execution');
+        };
+
+        $$('#omTabBody [data-ex]').forEach(inp=>{
+          inp.oninput = ()=>{
+            const i = Number(inp.dataset.i);
+            const key = inp.dataset.ex;
+            if(key==='taskName') o.execution.checklist[i].name = inp.value;
+            if(key==='taskDone') o.execution.checklist[i].done = inp.value==='1';
+            if(key==='taskStart') o.execution.checklist[i].start = inp.value;
+            if(key==='taskEnd') o.execution.checklist[i].end = inp.value;
+
+            if(key==='useSku') o.execution.partsUsed[i].sku = inp.value;
+            if(key==='useName') o.execution.partsUsed[i].name = inp.value;
+            if(key==='useQty') o.execution.partsUsed[i].qty = Number(inp.value||0);
+          };
+        });
+
+        $$('#omTabBody [data-ex-del]').forEach(btn=>{
+          btn.onclick = ()=>{
+            const i = Number(btn.dataset.i);
+            if(btn.dataset.exDel==='task') o.execution.checklist.splice(i,1);
+            if(btn.dataset.exDel==='use') o.execution.partsUsed.splice(i,1);
+            persistAll();
+            setTab('execution');
+          };
+        });
+      }
+
+      // Payment handlers
+      if(tab==='payment'){
+        const updateRem = ()=>{
+          const total = Number($('#payTotal').value||0);
+          const paid = Number($('#payPaid').value||0);
+          const rem = Math.max(0, total - paid);
+          $('#payRem').value = `${money(rem)} ${settings.currency}`;
+        };
+        $('#payTotal').oninput = updateRem;
+        $('#payPaid').oninput = updateRem;
+
+        $('#payMarkReady').onclick = ()=>{
+          o.status = 'جاهز للتسليم';
+          $('#omStatus').value = o.status;
+          o.updatedAt = nowISO();
+          persistAll();
+          toast('تم تعيين الحالة: جاهز للتسليم');
+          render();
+          setTab('payment');
+        };
+
+        $('#payCloseOrder').onclick = ()=>{
+          // save payment fields
+          o.payment.total = Number($('#payTotal').value||0);
+          o.payment.paid = Number($('#payPaid').value||0);
+          o.payment.method = $('#payMethod').value;
+          o.payment.deliveredAt = $('#payDelivered').value || fmtDT(nowISO());
+          o.payment.receivedBy = $('#payReceivedBy').value.trim();
+          o.payment.warrantyDays = Number($('#payWarrantyDays').value||settings.serviceWarrantyDays);
+          o.payment.warrantyTerms = $('#payWarrantyTerms').value;
+          o.payment.remaining = Math.max(0, Number(o.payment.total||0) - Number(o.payment.paid||0));
+          if(o.payment.remaining > 0){
+            if(!confirm('لا يزال يوجد مبلغ متبقي. هل تريد إقفال الطلب رغم ذلك؟')) return;
+          }
+          o.status = 'مُسلّم/مغلق';
+          o.archived = true;
+          o.updatedAt = nowISO();
+          persistAll();
+          toast('تم إقفال الطلب','ok');
+          render();
+          closeModal();
+        };
+      }
+    }
+  }
+
+  // ------------------------
+  // Quotation Print + WhatsApp
+  // ------------------------
+  function buildQuoteText(orderId){
+    const o = orders.find(x=>x.id===orderId);
+    if(!o) return '';
+    const c = getCustomer(o.customerId);
+    const v = getVehicle(o.vehicleId);
+    const q = o.quotation||{services:[],parts:[],vatRate:settings.vatRate,discount:0,notes:''};
+    const totals = calcQuoteTotals(q);
+
+    const lines = [];
+    lines.push(`*${settings.companyName}*`);
+    lines.push(`عرض سعر صيانة`);
+    lines.push(`رقم الطلب: ${orderLabel(o)}`);
+    lines.push(`الفرع: ${o.branch||''}`);
+    lines.push(`العميل: ${c?.name||''} (${c?.phone||''})`);
+    lines.push(`المركبة: ${v?.model||''} ${v?.year||''} | ${v?.plate||v?.vin||v?.serial||''}`);
+    lines.push(`المشكلة: ${o.problem||''}`);
+    lines.push('');
+
+    if((q.services||[]).length){
+      lines.push('*الخدمات (الأجور):*');
+      q.services.forEach((s,i)=>{
+        lines.push(`${i+1}) ${s.name||'خدمة'} - ${s.duration||''} - ${money(s.price)} ${settings.currency}`);
+      });
+      lines.push('');
+    }
+
+    if((q.parts||[]).length){
+      lines.push('*قطع الغيار:*');
+      q.parts.forEach((p,i)=>{
+        const disc = Number(p.discount||0);
+        const lineTotal = (Number(p.qty||0) * Number(p.price||0)) - disc;
+        lines.push(`${i+1}) ${p.name||''} ${p.sku?`(${p.sku})`:''} - كمية ${p.qty||1} - ${money(lineTotal)} ${settings.currency}`);
+      });
+      lines.push('');
+    }
+
+    if(q.discount){
+      lines.push(`خصم إضافي: ${money(q.discount)} ${settings.currency}`);
+    }
+    lines.push(`الإجمالي قبل الضريبة: ${money(totals.subtotal)} ${settings.currency}`);
+    lines.push(`VAT (${Math.round((q.vatRate ?? settings.vatRate)*100)}%): ${money(totals.vat)} ${settings.currency}`);
+    lines.push(`*الإجمالي النهائي: ${money(totals.total)} ${settings.currency}*`);
+
+    if(q.notes){
+      lines.push('');
+      lines.push(`ملاحظات: ${q.notes}`);
+    }
+
+    lines.push('');
+    lines.push('يرجى الرد بـ (موافقة/تعديل/رفض).');
+
+    return lines.join('\n');
+  }
+
+  function openWhatsApp(orderId){
+    const o = orders.find(x=>x.id===orderId);
+    if(!o){ toast('لم يتم العثور على الطلب','danger'); return; }
+    const c = getCustomer(o.customerId);
+    const phone = (c?.phone||'').replace(/\s+/g,'');
+    const text = buildQuoteText(orderId);
+
+    if(!phone){
+      // open generic chat
+      window.open(`https://wa.me/?text=${encodeURIComponent(text)}`, '_blank');
+      toast('تم تجهيز رسالة واتساب (بدون رقم)','ok');
+      return;
+    }
+
+    // Saudi numbers often start 05 or +966; normalize to international format for wa.me
+    let wa = phone;
+    if(wa.startsWith('05')) wa = '966' + wa.slice(1);
+    if(wa.startsWith('+')) wa = wa.replace('+','');
+    wa = wa.replace(/[^0-9]/g,'');
+
+    window.open(`https://wa.me/${wa}?text=${encodeURIComponent(text)}`, '_blank');
+    toast('تم فتح واتساب للعميل','ok');
+  }
+
+  function printQuotation(orderId){
+    const o = orders.find(x=>x.id===orderId);
+    if(!o){ toast('لم يتم العثور على الطلب','danger'); return; }
+    const c = getCustomer(o.customerId);
+    const v = getVehicle(o.vehicleId);
+    const q = o.quotation||{services:[],parts:[],vatRate:settings.vatRate,discount:0,notes:''};
+    const totals = calcQuoteTotals(q);
+
+    const html = `
+      <div style="font-family:Tahoma, Arial; direction:rtl; padding:22px;">
+        <div style="display:flex; justify-content:space-between; align-items:flex-start; gap:12px;">
+          <div>
+            <div style="font-size:18px; font-weight:900;">${esc(settings.companyName)}</div>
+            <div style="color:#334155; margin-top:4px; font-weight:700">عرض سعر صيانة</div>
+          </div>
+          <div style="text-align:left; font-weight:800;">
+            <div>رقم الطلب: <b>${esc(orderLabel(o))}</b></div>
+            <div>التاريخ: ${esc(fmtDT(nowISO()))}</div>
+            <div>الفرع: ${esc(o.branch||'')}</div>
+          </div>
+        </div>
+        <hr style="margin:14px 0" />
+        <div style="display:grid; grid-template-columns:1fr 1fr; gap:12px;">
+          <div>
+            <div style="font-weight:900; margin-bottom:6px;">بيانات العميل</div>
+            <div>الاسم: <b>${esc(c?.name||'')}</b></div>
+            <div>الجوال: ${esc(c?.phone||'')}</div>
+            <div>المدينة/الفرع: ${esc(c?.city||'')} ${c?.branch?(' - '+esc(c.branch)):''}</div>
+          </div>
+          <div>
+            <div style="font-weight:900; margin-bottom:6px;">بيانات المركبة/الجهاز</div>
+            <div>الموديل: <b>${esc(v?.model||'')}</b></div>
+            <div>السنة: ${esc(v?.year||'')}</div>
+            <div>لوحة/شاصي/سيريال: ${esc(v?.plate||v?.vin||v?.serial||'')}</div>
+            <div>العداد/ساعات: ${esc(v?.meter||'')}</div>
+          </div>
+        </div>
+        <hr style="margin:14px 0" />
+        <div style="font-weight:900;">الشكوى:</div>
+        <div style="margin-top:6px; color:#0f172a;">${esc(o.problem||'')}</div>
+
+        <hr style="margin:14px 0" />
+
+        <div style="font-weight:900; margin-bottom:8px;">الخدمات (الأجور)</div>
+        <table style="width:100%; border-collapse:collapse;">
+          <thead>
+            <tr style="background:#f1f5f9;">
+              <th style="border:1px solid #cbd5e1; padding:8px; text-align:right;">#</th>
+              <th style="border:1px solid #cbd5e1; padding:8px; text-align:right;">الخدمة</th>
+              <th style="border:1px solid #cbd5e1; padding:8px; text-align:right;">المدة</th>
+              <th style="border:1px solid #cbd5e1; padding:8px; text-align:right;">السعر</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${(q.services||[]).length ? q.services.map((s,i)=>`
+              <tr>
+                <td style="border:1px solid #cbd5e1; padding:8px;">${i+1}</td>
+                <td style="border:1px solid #cbd5e1; padding:8px;">${esc(s.name||'')}</td>
+                <td style="border:1px solid #cbd5e1; padding:8px;">${esc(s.duration||'')}</td>
+                <td style="border:1px solid #cbd5e1; padding:8px;">${money(s.price)} ${esc(settings.currency)}</td>
+              </tr>
+            `).join('') : `
+              <tr><td colspan="4" style="border:1px solid #cbd5e1; padding:10px; color:#64748b;">لا توجد خدمات.</td></tr>
+            `}
+          </tbody>
+        </table>
+
+        <div style="height:12px"></div>
+
+        <div style="font-weight:900; margin-bottom:8px;">قطع الغيار</div>
+        <table style="width:100%; border-collapse:collapse;">
+          <thead>
+            <tr style="background:#f1f5f9;">
+              <th style="border:1px solid #cbd5e1; padding:8px; text-align:right;">#</th>
+              <th style="border:1px solid #cbd5e1; padding:8px; text-align:right;">الكود</th>
+              <th style="border:1px solid #cbd5e1; padding:8px; text-align:right;">القطعة</th>
+              <th style="border:1px solid #cbd5e1; padding:8px; text-align:right;">الكمية</th>
+              <th style="border:1px solid #cbd5e1; padding:8px; text-align:right;">السعر</th>
+              <th style="border:1px solid #cbd5e1; padding:8px; text-align:right;">خصم</th>
+              <th style="border:1px solid #cbd5e1; padding:8px; text-align:right;">الإجمالي</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${(q.parts||[]).length ? q.parts.map((p,i)=>{
+              const disc = Number(p.discount||0);
+              const lineTotal = (Number(p.qty||0) * Number(p.price||0)) - disc;
+              return `
+                <tr>
+                  <td style="border:1px solid #cbd5e1; padding:8px;">${i+1}</td>
+                  <td style="border:1px solid #cbd5e1; padding:8px;">${esc(p.sku||'')}</td>
+                  <td style="border:1px solid #cbd5e1; padding:8px;">${esc(p.name||'')}</td>
+                  <td style="border:1px solid #cbd5e1; padding:8px;">${esc(p.qty||'')}</td>
+                  <td style="border:1px solid #cbd5e1; padding:8px;">${money(p.price)} ${esc(settings.currency)}</td>
+                  <td style="border:1px solid #cbd5e1; padding:8px;">${money(disc)} ${esc(settings.currency)}</td>
+                  <td style="border:1px solid #cbd5e1; padding:8px;">${money(lineTotal)} ${esc(settings.currency)}</td>
+                </tr>
+              `;
+            }).join('') : `
+              <tr><td colspan="7" style="border:1px solid #cbd5e1; padding:10px; color:#64748b;">لا توجد قطع.</td></tr>
+            `}
+          </tbody>
+        </table>
+
+        <hr style="margin:14px 0" />
+
+        <div style="display:flex; justify-content:flex-start;">
+          <table style="border-collapse:collapse; min-width: 360px;">
+            <tr><td style="border:1px solid #cbd5e1; padding:8px; font-weight:800;">الإجمالي قبل الضريبة</td><td style="border:1px solid #cbd5e1; padding:8px;">${money(totals.subtotal)} ${esc(settings.currency)}</td></tr>
+            <tr><td style="border:1px solid #cbd5e1; padding:8px; font-weight:800;">VAT (${Math.round((q.vatRate ?? settings.vatRate)*100)}%)</td><td style="border:1px solid #cbd5e1; padding:8px;">${money(totals.vat)} ${esc(settings.currency)}</td></tr>
+            <tr><td style="border:1px solid #cbd5e1; padding:8px; font-weight:900;">الإجمالي النهائي</td><td style="border:1px solid #cbd5e1; padding:8px; font-weight:900;">${money(totals.total)} ${esc(settings.currency)}</td></tr>
+          </table>
+        </div>
+
+        ${q.notes ? `<div style="margin-top:12px;"><div style="font-weight:900;">ملاحظات:</div><div style="margin-top:6px;">${esc(q.notes)}</div></div>` : ''}
+
+        <div style="margin-top:18px; color:#334155; font-weight:700;">يرجى اعتماد العرض (موافقة/تعديل/رفض).</div>
+      </div>
+    `;
+
+    $('#printArea').innerHTML = html;
+    window.print();
+  }
+
+  // ------------------------
+  // View events
+  // ------------------------
+  function bindViewEvents(){
+    // Dashboard
+    const dashNew = $('#dashNew');
+    if(dashNew) dashNew.onclick = ()=> modalNewOrder({branch:branchFilter});
+
+    $$('[data-go="orders"]').forEach(b=> b.onclick = ()=>{ view='orders'; render(); });
+
+    // Open order buttons
+    $$('[data-open-order]').forEach(b=>{
+      b.onclick = ()=> openOrder(b.dataset.openOrder);
+    });
+
+    // Cancel order from list
+    $$('[data-cancel-order]').forEach(b=>{
+      b.onclick = ()=>{
+        const id = b.dataset.cancelOrder;
+        const o = orders.find(x=>x.id===id);
+        if(!o) return;
+        if(!confirm(`إلغاء الطلب ${orderLabel(o)} ؟`)) return;
+        o.status = 'ملغي';
+        o.updatedAt = nowISO();
+        persistAll();
+        toast('تم إلغاء الطلب','warn');
+        render();
+      };
+    });
+
+    // Customers
+    const addCustomer = $('#addCustomer');
+    if(addCustomer) addCustomer.onclick = ()=> modalCustomer();
+    $$('[data-edit-customer]').forEach(b=> b.onclick = ()=> modalCustomer(b.dataset.editCustomer));
+    $$('[data-del-customer]').forEach(b=> b.onclick = ()=>{
+      const id = b.dataset.delCustomer;
+      const c = customers.find(x=>x.id===id);
+      if(!c) return;
+      const used = orders.some(o=>o.customerId===id);
+      if(used){ toast('لا يمكن حذف عميل مرتبط بطلبات','warn'); return; }
+      if(!confirm('حذف العميل؟')) return;
+      customers = customers.filter(x=>x.id!==id);
+      persistAll();
+      toast('تم حذف العميل','ok');
+      render();
+    });
+
+    // Vehicles
+    const addVehicle = $('#addVehicle');
+    if(addVehicle) addVehicle.onclick = ()=> modalVehicle();
+    $$('[data-edit-vehicle]').forEach(b=> b.onclick = ()=> modalVehicle(b.dataset.editVehicle));
+    $$('[data-del-vehicle]').forEach(b=> b.onclick = ()=>{
+      const id = b.dataset.delVehicle;
+      const v = vehicles.find(x=>x.id===id);
+      if(!v) return;
+      const used = orders.some(o=>o.vehicleId===id);
+      if(used){ toast('لا يمكن حذف مركبة مرتبطة بطلبات','warn'); return; }
+      if(!confirm('حذف المركبة؟')) return;
+      vehicles = vehicles.filter(x=>x.id!==id);
+      persistAll();
+      toast('تم حذف المركبة','ok');
+      render();
+    });
+
+    // Orders
+    const addOrder = $('#addOrder');
+    if(addOrder) addOrder.onclick = ()=> modalNewOrder({branch:branchFilter});
+
+    // Settings
+    const saveSettingsBtn = $('#saveSettings');
+    if(saveSettingsBtn){
+      saveSettingsBtn.onclick = ()=>{
+        const branchesRaw = $('#stBranches').value.trim();
+        const branches = branchesRaw
+          .split(/[،,]/)
+          .map(s=>s.trim())
+          .filter(Boolean);
+        settings.companyName = $('#stCompany').value.trim() || 'Road Biker';
+        settings.currency = $('#stCurrency').value.trim() || 'ريال';
+        settings.vatRate = Number($('#stVat').value||0.15);
+        settings.serviceWarrantyDays = Number($('#stWarranty').value||30);
+        settings.branches = branches.length ? branches : ['الرياض','جدة','حائل'];
+
+        // Live intake
+        const le = $('#stLiveEnabled');
+        const lab = $('#stLiveApiBase');
+        const lak = $('#stLiveAdminKey');
+        if(le) settings.liveEnabled = (le.value === '1');
+        if(lab) settings.liveApiBase = lab.value.trim() || 'api';
+        if(lak) settings.liveAdminKey = lak.value.trim();
+
+        persistAll();
+        toast('تم حفظ الإعدادات');
+        render();
+      };
+    }
+
+    const copyPortal = $('#copyPortal');
+    if(copyPortal){
+      copyPortal.onclick = async ()=>{
+        const inp = $('#stPortalUrl');
+        try{
+          await navigator.clipboard.writeText(inp.value);
+          toast('تم نسخ رابط بوابة العميل');
+        }catch(e){
+          inp.select();
+          document.execCommand('copy');
+          toast('تم نسخ رابط بوابة العميل');
+        }
+      };
+    }
+  }
+
+  // ------------------------
+  // Global controls
+  // ------------------------
+  // Sidebar nav
+  $$('#nav button').forEach(btn=>{
+    btn.onclick = ()=>{
+      view = btn.dataset.view;
+      render();
+    };
+  });
+
+  // Search & filters
+  $('#search').addEventListener('input', (e)=>{
+    searchText = e.target.value.trim();
+    render();
+  });
+  $('#branchFilter').addEventListener('change', (e)=>{
+    branchFilter = e.target.value;
+    render();
+  });
+  $('#statusFilter').addEventListener('change', (e)=>{
+    statusFilter = e.target.value;
+    render();
+  });
+
+  // Quick actions
+  $('#btnNewOrder').onclick = ()=> modalNewOrder({branch:branchFilter});
+  $('#quickNew').onclick = ()=> modalNewOrder({branch:branchFilter});
+  $('#quickCustomer').onclick = ()=> modalCustomer();
+  $('#quickVehicle').onclick = ()=> modalVehicle();
+
+  // Export/Import
+  $('#btnExport').onclick = ()=>{
+    const payload = {
+      exportedAt: nowISO(),
+      version: 'rbms_v1',
+      settings,
+      customers,
+      vehicles,
+      orders,
+      orderCounter
+    };
+    const blob = new Blob([JSON.stringify(payload, null, 2)], {type:'application/json'});
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `rbms-backup-${new Date().toISOString().slice(0,10)}.json`;
+    a.click();
+    URL.revokeObjectURL(url);
+    toast('تم تصدير البيانات');
+  };
+
+  $('#btnImport').onclick = ()=> $('#importFile').click();
+  $('#importFile').onchange = (e)=>{
+    const file = e.target.files?.[0];
+    if(!file) return;
+    const reader = new FileReader();
+    reader.onload = ()=>{
+      try{
+        const data = JSON.parse(reader.result);
+        if(!data || !data.version){ throw new Error('invalid'); }
+        settings = data.settings || settings;
+        customers = data.customers || [];
+        vehicles = data.vehicles || [];
+        orders = data.orders || [];
+        orderCounter = data.orderCounter || 1;
+        persistAll();
+        toast('تم استيراد البيانات','ok');
+        render();
+      }catch(err){
+        toast('فشل الاستيراد: ملف غير صالح','danger');
+      }
+    };
+    reader.readAsText(file);
+    e.target.value='';
+  };
+
+  // Wipe
+  $('#btnWipe').onclick = ()=>{
+    if(!confirm('تحذير: سيتم مسح كل البيانات من هذا الجهاز. هل أنت متأكد؟')) return;
+    localStorage.removeItem(KEY.settings);
+    localStorage.removeItem(KEY.customers);
+    localStorage.removeItem(KEY.vehicles);
+    localStorage.removeItem(KEY.orders);
+    localStorage.removeItem(KEY.counter);
+    settings = structuredClone(DEFAULT_SETTINGS);
+    customers = [];
+    vehicles = [];
+    orders = [];
+    orderCounter = 1;
+    persistAll();
+    toast('تم تصفير البيانات','warn');
+    render();
+  };
+
+  // Modal close
+  $('#modalClose').onclick = closeModal;
+  $('#modal').addEventListener('click', (e)=>{
+    if(e.target === $('#modal')) closeModal();
+  });
+
+  // Initial render
+  // Ensure all orders have required nested objects in case of older data
+  orders = orders.map(o=>({
+    diagnosis: {result:'',cause:'',recommendations:'',attachments:''},
+    quotation: {services:[],parts:[],vatRate:settings.vatRate,discount:0,notes:''},
+    approval: {decision:'',notes:'',approvedAt:'',approvedBy:''},
+    execution: {checklist:[],partsUsed:[],techNotes:'',startedAt:'',finishedAt:''},
+    payment: {method:'',total:0,paid:0,remaining:0,deliveredAt:'',receivedBy:'',warrantyDays:settings.serviceWarrantyDays,warrantyTerms:''},
+    ...o,
+    diagnosis: {...{result:'',cause:'',recommendations:'',attachments:''}, ...(o.diagnosis||{})},
+    quotation: {...{services:[],parts:[],vatRate:settings.vatRate,discount:0,notes:''}, ...(o.quotation||{})},
+    approval: {...{decision:'',notes:'',approvedAt:'',approvedBy:''}, ...(o.approval||{})},
+    execution: {...{checklist:[],partsUsed:[],techNotes:'',startedAt:'',finishedAt:''}, ...(o.execution||{})},
+    payment: {...{method:'',total:0,paid:0,remaining:0,deliveredAt:'',receivedBy:'',warrantyDays:settings.serviceWarrantyDays,warrantyTerms:''}, ...(o.payment||{})}
+  }));
+  persistAll();
+  fillFilters();
+  startLivePolling();
+  render();
+})();
+</script>
+</body>
+</html>
